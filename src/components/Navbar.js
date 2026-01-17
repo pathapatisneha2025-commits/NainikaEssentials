@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
 import {
   FiMenu,
@@ -15,13 +15,18 @@ import {
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
 
+  // ✅ Prevent background scroll when menu is open
+  useEffect(() => {
+    document.body.style.overflow = menuOpen ? "hidden" : "auto";
+  }, [menuOpen]);
+
   return (
     <>
       <style>{`
-        * { box-sizing: border-box; }
-
-        body.menu-open {
-          overflow: hidden;
+        * {
+          box-sizing: border-box;
+          margin: 0;
+          padding: 0;
         }
 
         .navbar {
@@ -34,8 +39,8 @@ export default function Navbar() {
           position: sticky;
           top: 0;
           z-index: 1000;
-          font-family: 'Inter', sans-serif;
           border-bottom: 1px solid #eee;
+          font-family: 'Inter', sans-serif;
         }
 
         .logo {
@@ -53,7 +58,7 @@ export default function Navbar() {
           height: 32px;
         }
 
-        /* DESKTOP LINKS */
+        /* DESKTOP NAV */
         .nav-links {
           display: flex;
           align-items: center;
@@ -66,8 +71,8 @@ export default function Navbar() {
         .nav-item {
           text-decoration: none;
           color: #666;
-          font-weight: 500;
           font-size: 14px;
+          font-weight: 500;
           padding: 10px 16px;
           border-radius: 30px;
           display: flex;
@@ -104,6 +109,7 @@ export default function Navbar() {
         /* MOBILE */
         @media (max-width: 992px) {
           .nav-links {
+            display: none;
             position: fixed;
             top: 70px;
             left: 0;
@@ -112,10 +118,7 @@ export default function Navbar() {
             background: #fff;
             flex-direction: column;
             padding: 24px 16px;
-            border-radius: 0;
-            box-shadow: none;
-            display: none;
-            overflow-y: auto;
+            z-index: 999;
           }
 
           .nav-links.open {
@@ -124,7 +127,6 @@ export default function Navbar() {
 
           .nav-item {
             width: 100%;
-            justify-content: flex-start;
             font-size: 17px;
             padding: 14px 18px;
             border-radius: 14px;
@@ -146,11 +148,7 @@ export default function Navbar() {
 
       <header className="navbar">
         {/* LOGO */}
-        <NavLink
-          to="/"
-          className="logo"
-          onClick={() => setMenuOpen(false)}
-        >
+        <NavLink to="/" className="logo" onClick={() => setMenuOpen(false)}>
           <img src="/logoimage.jpeg" alt="Nainika Essentials" />
           <span>Nainika Essentials</span>
         </NavLink>
@@ -178,7 +176,7 @@ export default function Navbar() {
           </NavLink>
         </nav>
 
-        {/* RIGHT ICONS */}
+        {/* RIGHT */}
         <div className="right">
           <div className="nav-icons">
             <NavLink to="/login"><FiUser /></NavLink>

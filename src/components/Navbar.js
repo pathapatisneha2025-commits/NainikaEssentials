@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import {
   FiMenu,
   FiX,
@@ -13,14 +13,15 @@ import {
 } from "react-icons/fi";
 
 export default function Navbar() {
-  const [open, setOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const location = useLocation();
 
+  // ✅ Close menu when route changes (same as 2nd navbar)
   useEffect(() => {
-    setOpen(false);
+    setMenuOpen(false);
   }, [location.pathname]);
 
-  const isActive = (path) => location.pathname === path;
+  const handleLinkClick = () => setMenuOpen(false);
 
   return (
     <>
@@ -40,7 +41,6 @@ export default function Navbar() {
           font-family: 'Inter', sans-serif;
         }
 
-        /* LOGO */
         .logo {
           display: flex;
           align-items: center;
@@ -52,13 +52,10 @@ export default function Navbar() {
           white-space: nowrap;
         }
 
-        .logo img {
-          height: 32px;
-        }
+        .logo img { height: 32px; }
 
-        /* NAV LINKS (HIDDEN BY DEFAULT) */
         .nav-links {
-          display: none; /* 🔴 IMPORTANT FIX */
+          display: none;
           align-items: center;
           background: #f0f2ff;
           padding: 6px;
@@ -66,9 +63,7 @@ export default function Navbar() {
           gap: 4px;
         }
 
-        .nav-links.open {
-          display: flex;
-        }
+        .nav-links.open { display: flex; }
 
         .nav-item {
           text-decoration: none;
@@ -88,7 +83,6 @@ export default function Navbar() {
           color: #5b5bf0;
         }
 
-        /* RIGHT SIDE */
         .right {
           display: flex;
           align-items: center;
@@ -108,7 +102,6 @@ export default function Navbar() {
           cursor: pointer;
         }
 
-        /* ===== MOBILE ===== */
         @media (max-width: 992px) {
           .nav-links {
             position: fixed;
@@ -129,53 +122,50 @@ export default function Navbar() {
             padding: 14px 0;
           }
 
-          .nav-icons {
-            display: none;
-          }
-
-          .hamburger {
-            display: block;
-          }
+          .nav-icons { display: none; }
+          .hamburger { display: block; }
         }
       `}</style>
 
       <header className="navbar">
         {/* LEFT */}
-        <Link to="/" className="logo">
+        <NavLink to="/" className="logo" onClick={handleLinkClick}>
           <img src="/logoimage.jpeg" alt="Nainika Essentials" />
           <span>Nainika Essentials</span>
-        </Link>
+        </NavLink>
 
-        {/* CENTER / MOBILE MENU */}
-        <nav className={`nav-links ${open ? "open" : ""}`}>
-          <Link to="/" className={`nav-item ${isActive("/") ? "active" : ""}`}>
+        {/* CENTER */}
+        <nav className={`nav-links ${menuOpen ? "open" : ""}`}>
+          <NavLink to="/" className="nav-item" onClick={handleLinkClick}>
             <FiHome /> Home
-          </Link>
-          <Link to="/shop" className={`nav-item ${isActive("/shop") ? "active" : ""}`}>
+          </NavLink>
+
+          <NavLink to="/shop" className="nav-item" onClick={handleLinkClick}>
             <FiShoppingBag /> Shop
-          </Link>
-          <Link to="/orders" className={`nav-item ${isActive("/orders") ? "active" : ""}`}>
+          </NavLink>
+
+          <NavLink to="/orders" className="nav-item" onClick={handleLinkClick}>
             <FiPackage /> My Orders
-          </Link>
-          <Link to="/about" className={`nav-item ${isActive("/about") ? "active" : ""}`}>
+          </NavLink>
+
+          <NavLink to="/about" className="nav-item" onClick={handleLinkClick}>
             <FiInfo /> About
-          </Link>
-          <Link to="/contact" className={`nav-item ${isActive("/contact") ? "active" : ""}`}>
+          </NavLink>
+
+          <NavLink to="/contact" className="nav-item" onClick={handleLinkClick}>
             <FiPhone /> Contact
-          </Link>
+          </NavLink>
         </nav>
 
         {/* RIGHT */}
         <div className="right">
           <div className="nav-icons">
-            <Link to="/login">
-              <FiUser />
-            </Link>
-            <FiShoppingCart />
+            <NavLink to="/login"><FiUser /></NavLink>
+            <NavLink to="/cart"><FiShoppingCart /></NavLink>
           </div>
 
-          <div className="hamburger" onClick={() => setOpen(!open)}>
-            {open ? <FiX /> : <FiMenu />}
+          <div className="hamburger" onClick={() => setMenuOpen(!menuOpen)}>
+            {menuOpen ? <FiX /> : <FiMenu />}
           </div>
         </div>
       </header>

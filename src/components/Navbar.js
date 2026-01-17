@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { NavLink, useLocation } from "react-router-dom";
+import React, { useState } from "react";
+import { NavLink } from "react-router-dom";
 import {
   FiMenu,
   FiX,
@@ -14,14 +14,6 @@ import {
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const location = useLocation();
-
-  // ✅ Close menu when route changes (same as 2nd navbar)
-  useEffect(() => {
-    setMenuOpen(false);
-  }, [location.pathname]);
-
-  const handleLinkClick = () => setMenuOpen(false);
 
   return (
     <>
@@ -129,30 +121,54 @@ export default function Navbar() {
 
       <header className="navbar">
         {/* LEFT */}
-        <NavLink to="/" className="logo" onClick={handleLinkClick}>
+        <NavLink
+          to="/"
+          className="logo"
+          onClickCapture={() => setMenuOpen(false)}
+        >
           <img src="/logoimage.jpeg" alt="Nainika Essentials" />
           <span>Nainika Essentials</span>
         </NavLink>
 
         {/* CENTER */}
         <nav className={`nav-links ${menuOpen ? "open" : ""}`}>
-          <NavLink to="/" className="nav-item" onClick={handleLinkClick}>
+          <NavLink
+            to="/"
+            className="nav-item"
+            onClickCapture={() => setMenuOpen(false)}
+          >
             <FiHome /> Home
           </NavLink>
 
-          <NavLink to="/shop" className="nav-item" onClick={handleLinkClick}>
+          <NavLink
+            to="/shop"
+            className="nav-item"
+            onClickCapture={() => setMenuOpen(false)}
+          >
             <FiShoppingBag /> Shop
           </NavLink>
 
-          <NavLink to="/orders" className="nav-item" onClick={handleLinkClick}>
+          <NavLink
+            to="/orders"
+            className="nav-item"
+            onClickCapture={() => setMenuOpen(false)}
+          >
             <FiPackage /> My Orders
           </NavLink>
 
-          <NavLink to="/about" className="nav-item" onClick={handleLinkClick}>
+          <NavLink
+            to="/about"
+            className="nav-item"
+            onClickCapture={() => setMenuOpen(false)}
+          >
             <FiInfo /> About
           </NavLink>
 
-          <NavLink to="/contact" className="nav-item" onClick={handleLinkClick}>
+          <NavLink
+            to="/contact"
+            className="nav-item"
+            onClickCapture={() => setMenuOpen(false)}
+          >
             <FiPhone /> Contact
           </NavLink>
         </nav>
@@ -160,11 +176,18 @@ export default function Navbar() {
         {/* RIGHT */}
         <div className="right">
           <div className="nav-icons">
-            <NavLink to="/login"><FiUser /></NavLink>
-            <NavLink to="/cart"><FiShoppingCart /></NavLink>
+            <NavLink to="/login">
+              <FiUser />
+            </NavLink>
+            <NavLink to="/cart">
+              <FiShoppingCart />
+            </NavLink>
           </div>
 
-          <div className="hamburger" onClick={() => setMenuOpen(!menuOpen)}>
+          <div
+            className="hamburger"
+            onClick={() => setMenuOpen(!menuOpen)}
+          >
             {menuOpen ? <FiX /> : <FiMenu />}
           </div>
         </div>

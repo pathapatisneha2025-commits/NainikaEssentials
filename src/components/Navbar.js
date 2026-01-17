@@ -56,14 +56,18 @@ export default function Navbar() {
           height: 32px;
         }
 
-        /* DESKTOP NAV */
+        /* NAV LINKS (HIDDEN BY DEFAULT) */
         .nav-links {
-          display: flex;
+          display: none; /* 🔴 IMPORTANT FIX */
           align-items: center;
           background: #f0f2ff;
           padding: 6px;
           border-radius: 40px;
           gap: 4px;
+        }
+
+        .nav-links.open {
+          display: flex;
         }
 
         .nav-item {
@@ -84,12 +88,18 @@ export default function Navbar() {
           color: #5b5bf0;
         }
 
+        /* RIGHT SIDE */
+        .right {
+          display: flex;
+          align-items: center;
+          gap: 18px;
+        }
+
         .nav-icons {
           display: flex;
           gap: 18px;
           font-size: 22px;
           color: #333;
-          align-items: center;
         }
 
         .hamburger {
@@ -100,18 +110,6 @@ export default function Navbar() {
 
         /* ===== MOBILE ===== */
         @media (max-width: 992px) {
-          .navbar {
-            padding: 0 14px;
-          }
-
-          .logo span {
-            font-size: 16px;
-          }
-
-          .logo img {
-            height: 28px;
-          }
-
           .nav-links {
             position: fixed;
             top: 70px;
@@ -122,11 +120,6 @@ export default function Navbar() {
             padding: 16px 0;
             border-radius: 0;
             box-shadow: 0 12px 24px rgba(0,0,0,0.1);
-            display: none;
-          }
-
-          .nav-links.open {
-            display: flex;
           }
 
           .nav-item {
@@ -147,42 +140,43 @@ export default function Navbar() {
       `}</style>
 
       <header className="navbar">
+        {/* LEFT */}
         <Link to="/" className="logo">
           <img src="/logoimage.jpeg" alt="Nainika Essentials" />
           <span>Nainika Essentials</span>
         </Link>
 
+        {/* CENTER / MOBILE MENU */}
         <nav className={`nav-links ${open ? "open" : ""}`}>
           <Link to="/" className={`nav-item ${isActive("/") ? "active" : ""}`}>
             <FiHome /> Home
           </Link>
-
           <Link to="/shop" className={`nav-item ${isActive("/shop") ? "active" : ""}`}>
             <FiShoppingBag /> Shop
           </Link>
-
           <Link to="/orders" className={`nav-item ${isActive("/orders") ? "active" : ""}`}>
             <FiPackage /> My Orders
           </Link>
-
           <Link to="/about" className={`nav-item ${isActive("/about") ? "active" : ""}`}>
             <FiInfo /> About
           </Link>
-
           <Link to="/contact" className={`nav-item ${isActive("/contact") ? "active" : ""}`}>
             <FiPhone /> Contact
           </Link>
         </nav>
 
-        <div className="nav-icons">
-          <Link to="/login">
-            <FiUser />
-          </Link>
-          <FiShoppingCart />
-        </div>
+        {/* RIGHT */}
+        <div className="right">
+          <div className="nav-icons">
+            <Link to="/login">
+              <FiUser />
+            </Link>
+            <FiShoppingCart />
+          </div>
 
-        <div className="hamburger" onClick={() => setOpen(!open)}>
-          {open ? <FiX /> : <FiMenu />}
+          <div className="hamburger" onClick={() => setOpen(!open)}>
+            {open ? <FiX /> : <FiMenu />}
+          </div>
         </div>
       </header>
     </>

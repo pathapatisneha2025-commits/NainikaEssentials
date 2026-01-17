@@ -15,7 +15,7 @@ import {
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
 
-  // ✅ Prevent background scroll when menu is open
+  // Lock background scroll when menu opens
   useEffect(() => {
     document.body.style.overflow = menuOpen ? "hidden" : "auto";
   }, [menuOpen]);
@@ -58,7 +58,7 @@ export default function Navbar() {
           height: 32px;
         }
 
-        /* DESKTOP NAV */
+        /* ===== DESKTOP ===== */
         .nav-links {
           display: flex;
           align-items: center;
@@ -78,7 +78,6 @@ export default function Navbar() {
           display: flex;
           align-items: center;
           gap: 8px;
-          transition: all 0.25s ease;
         }
 
         .nav-item.active {
@@ -106,10 +105,16 @@ export default function Navbar() {
           cursor: pointer;
         }
 
-        /* MOBILE */
+        /* ===== MOBILE ===== */
         @media (max-width: 992px) {
+          /* Hide desktop nav completely */
           .nav-links {
-            display: none;
+            display: none !important;
+          }
+
+          /* Show menu only when open */
+          .nav-links.open {
+            display: flex !important;
             position: fixed;
             top: 70px;
             left: 0;
@@ -119,10 +124,6 @@ export default function Navbar() {
             flex-direction: column;
             padding: 24px 16px;
             z-index: 999;
-          }
-
-          .nav-links.open {
-            display: flex;
           }
 
           .nav-item {
@@ -136,6 +137,7 @@ export default function Navbar() {
             margin-top: 10px;
           }
 
+          /* Hide icons on mobile */
           .nav-icons {
             display: none;
           }
@@ -153,7 +155,7 @@ export default function Navbar() {
           <span>Nainika Essentials</span>
         </NavLink>
 
-        {/* NAV LINKS */}
+        {/* MOBILE / DESKTOP MENU */}
         <nav className={`nav-links ${menuOpen ? "open" : ""}`}>
           <NavLink to="/" className="nav-item" onClick={() => setMenuOpen(false)}>
             <FiHome /> Home

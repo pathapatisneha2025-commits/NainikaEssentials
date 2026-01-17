@@ -49,7 +49,9 @@ export default function Navbar() {
           text-decoration: none;
         }
 
-        .logo img { height: 35px; }
+        .logo img {
+          height: 35px;
+        }
 
         .nav-links {
           display: flex;
@@ -90,7 +92,9 @@ export default function Navbar() {
           align-items: center;
         }
 
-        .icon-btn { cursor: pointer; }
+        .icon-btn {
+          cursor: pointer;
+        }
 
         .hamburger {
           display: none;
@@ -98,6 +102,7 @@ export default function Navbar() {
           cursor: pointer;
         }
 
+        /* ===== MOBILE ===== */
         @media (max-width: 992px) {
           .nav-links {
             position: absolute;
@@ -109,7 +114,11 @@ export default function Navbar() {
             border-radius: 0;
             padding: 20px 0;
             box-shadow: 0 10px 20px rgba(0,0,0,0.08);
-            display: ${open ? "flex" : "none"};
+            display: none; /* ✅ CLOSED BY DEFAULT */
+          }
+
+          .nav-links.open {
+            display: flex; /* ✅ OPEN ONLY WHEN CLASS EXISTS */
           }
 
           .nav-item {
@@ -118,8 +127,13 @@ export default function Navbar() {
             font-size: 16px;
           }
 
-          .nav-icons { display: none; }
-          .hamburger { display: block; }
+          .nav-icons {
+            display: none;
+          }
+
+          .hamburger {
+            display: block;
+          }
         }
       `}</style>
 
@@ -129,7 +143,7 @@ export default function Navbar() {
           <span>Nainika Essentials</span>
         </Link>
 
-        <nav className="nav-links">
+        <nav className={`nav-links ${open ? "open" : ""}`}>
           <Link to="/" className={`nav-item ${isActive("/") ? "active" : ""}`}>
             {isActive("/") && <FiHome />} Home
           </Link>

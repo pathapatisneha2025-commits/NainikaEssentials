@@ -16,7 +16,6 @@ export default function Navbar() {
   const [open, setOpen] = useState(false);
   const location = useLocation();
 
-  // ✅ Close menu automatically on route change
   useEffect(() => {
     setOpen(false);
   }, [location.pathname]);
@@ -26,9 +25,11 @@ export default function Navbar() {
   return (
     <>
       <style>{`
+        * { box-sizing: border-box; }
+
         .navbar {
-          height: 80px;
-          padding: 0 40px;
+          height: 70px;
+          padding: 0 16px;
           background: #fff;
           display: flex;
           align-items: center;
@@ -39,40 +40,43 @@ export default function Navbar() {
           font-family: 'Inter', sans-serif;
         }
 
+        /* LOGO */
         .logo {
           display: flex;
           align-items: center;
-          gap: 10px;
+          gap: 8px;
           font-weight: 700;
-          font-size: 20px;
+          font-size: 18px;
           color: #1a1a1a;
           text-decoration: none;
+          white-space: nowrap;
         }
 
         .logo img {
-          height: 35px;
+          height: 32px;
         }
 
+        /* DESKTOP NAV */
         .nav-links {
           display: flex;
           align-items: center;
           background: #f0f2ff;
-          padding: 6px 10px;
-          border-radius: 50px;
-          gap: 5px;
+          padding: 6px;
+          border-radius: 40px;
+          gap: 4px;
         }
 
         .nav-item {
           text-decoration: none;
           color: #666;
           font-weight: 500;
-          font-size: 15px;
-          padding: 10px 20px;
-          border-radius: 40px;
+          font-size: 14px;
+          padding: 10px 16px;
+          border-radius: 30px;
           display: flex;
           align-items: center;
-          gap: 8px;
-          transition: all 0.3s ease;
+          gap: 6px;
+          transition: all 0.25s ease;
         }
 
         .nav-item.active {
@@ -80,20 +84,12 @@ export default function Navbar() {
           color: #5b5bf0;
         }
 
-        .nav-item:hover:not(.active) {
-          background: rgba(91, 91, 240, 0.08);
-        }
-
         .nav-icons {
           display: flex;
-          gap: 22px;
+          gap: 18px;
           font-size: 22px;
           color: #333;
           align-items: center;
-        }
-
-        .icon-btn {
-          cursor: pointer;
         }
 
         .hamburger {
@@ -104,27 +100,40 @@ export default function Navbar() {
 
         /* ===== MOBILE ===== */
         @media (max-width: 992px) {
+          .navbar {
+            padding: 0 14px;
+          }
+
+          .logo span {
+            font-size: 16px;
+          }
+
+          .logo img {
+            height: 28px;
+          }
+
           .nav-links {
-            position: absolute;
-            top: 80px;
+            position: fixed;
+            top: 70px;
             left: 0;
             width: 100%;
-            background: white;
+            background: #fff;
             flex-direction: column;
+            padding: 16px 0;
             border-radius: 0;
-            padding: 20px 0;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.08);
-            display: none; /* ✅ CLOSED BY DEFAULT */
+            box-shadow: 0 12px 24px rgba(0,0,0,0.1);
+            display: none;
           }
 
           .nav-links.open {
-            display: flex; /* ✅ OPEN ONLY WHEN CLASS EXISTS */
+            display: flex;
           }
 
           .nav-item {
             width: 100%;
             justify-content: center;
             font-size: 16px;
+            padding: 14px 0;
           }
 
           .nav-icons {
@@ -145,31 +154,31 @@ export default function Navbar() {
 
         <nav className={`nav-links ${open ? "open" : ""}`}>
           <Link to="/" className={`nav-item ${isActive("/") ? "active" : ""}`}>
-            {isActive("/") && <FiHome />} Home
+            <FiHome /> Home
           </Link>
 
           <Link to="/shop" className={`nav-item ${isActive("/shop") ? "active" : ""}`}>
-            {isActive("/shop") && <FiShoppingBag />} Shop
+            <FiShoppingBag /> Shop
           </Link>
 
           <Link to="/orders" className={`nav-item ${isActive("/orders") ? "active" : ""}`}>
-            {isActive("/orders") && <FiPackage />} My Orders
+            <FiPackage /> My Orders
           </Link>
 
           <Link to="/about" className={`nav-item ${isActive("/about") ? "active" : ""}`}>
-            {isActive("/about") && <FiInfo />} About
+            <FiInfo /> About
           </Link>
 
           <Link to="/contact" className={`nav-item ${isActive("/contact") ? "active" : ""}`}>
-            {isActive("/contact") && <FiPhone />} Contact
+            <FiPhone /> Contact
           </Link>
         </nav>
 
         <div className="nav-icons">
           <Link to="/login">
-            <FiUser className="icon-btn" />
+            <FiUser />
           </Link>
-          <FiShoppingCart className="icon-btn" />
+          <FiShoppingCart />
         </div>
 
         <div className="hamburger" onClick={() => setOpen(!open)}>

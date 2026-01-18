@@ -1,6 +1,9 @@
 import React from 'react';
+import { useNavigate } from "react-router-dom";
 
 const FeaturedSection = () => {
+      const navigate = useNavigate();
+  
   const products = [
     {
       id: 1,
@@ -96,8 +99,12 @@ const FeaturedSection = () => {
       {/* Smaller Compact Product Grid */}
       <div className="product-grid">
         {products.map((item, index) => (
-          <div key={item.id} className="product-card" style={styles.card}>
-            <div style={styles.imageWrapper}>
+<div
+            key={item.id}
+            className="card"
+            style={styles.card}
+            onClick={() => navigate("/shop")}
+          >                <div style={styles.imageWrapper}>
               <img src={item.img} alt={item.name} style={styles.productImg} />
               <div style={styles.discountTag}>{item.discount}</div>
               

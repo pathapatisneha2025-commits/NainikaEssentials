@@ -1,30 +1,16 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const categories = [
-  {
-    title: "Hoodie",
-    image: "/hoodie.jpeg",
-    link: "/category/hoodie",
-  },
-  {
-    title: "Clothing",
-    image: "/clothing.jpeg",
-    link: "/category/clothing",
-  },
-  {
-    title: "Shirts",
-    image: "/shirts.jpeg",
-    link: "/category/shirts",
-  },
-  {
-    title: "Pants",
-    image: "/pants.jpeg",
-    link: "/category/pants",
-  },
+  { title: "Hoodie", image: "/hoodie.jpeg", slug: "hoodie" },
+  { title: "Clothing", image: "/clothing.jpeg", slug: "clothing" },
+  { title: "Shirts", image: "/shirts.jpeg", slug: "shirts" },
+  { title: "Pants", image: "/pants.jpeg", slug: "pants" },
 ];
 
 export default function ShopByCategory() {
+  const navigate = useNavigate();
+
   return (
     <>
       <style>{`
@@ -38,22 +24,22 @@ export default function ShopByCategory() {
         }
 
         .header-section h2 {
-          font-size: 28px; /* Reduced from 32px */
-          font-weight: 400; /* Removed bold */
+          font-size: 28px;
+          font-weight: 400;
           color: #111;
           margin: 0;
         }
 
         .header-section p {
           color: #777;
-          font-size: 14px; /* Reduced from 16px */
+          font-size: 14px;
           margin-top: 4px;
         }
 
         .categories-grid {
           display: grid;
           grid-template-columns: repeat(4, 1fr);
-          gap: 15px; /* Tighter spacing */
+          gap: 15px;
         }
 
         .category-card {
@@ -61,7 +47,7 @@ export default function ShopByCategory() {
           overflow: hidden;
           cursor: pointer;
           border-radius: 2px;
-          aspect-ratio: 3 / 4.2; /* Adjusted for the tall screenshot look */
+          aspect-ratio: 3 / 4.2;
         }
 
         .category-card img {
@@ -84,40 +70,26 @@ export default function ShopByCategory() {
           padding: 20px;
           background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 100%);
           color: #fff;
-          display: flex;
-          flex-direction: column;
-          justify-content: flex-end;
         }
 
         .category-overlay h3 {
           margin: 0;
-          font-size: 18px; /* Reduced from 22px */
+          font-size: 18px;
           font-weight: 500;
         }
 
-        .category-overlay .explore-link {
-          display: inline-block;
-          margin-top: 5px;
-          text-decoration: none;
-          color: #fff;
-          font-size: 12px; /* Reduced from 14px */
+        .explore-link {
+          font-size: 12px;
           opacity: 0.85;
         }
 
-        /* ======= Responsive ======= */
         @media (max-width: 1024px) {
-          .categories-grid {
-            grid-template-columns: repeat(2, 1fr);
-          }
+          .categories-grid { grid-template-columns: repeat(2, 1fr); }
         }
 
         @media (max-width: 600px) {
-          .categories-grid {
-            grid-template-columns: 1fr;
-          }
-          .header-section h2 {
-            font-size: 24px;
-          }
+          .categories-grid { grid-template-columns: 1fr; }
+          .header-section h2 { font-size: 24px; }
         }
       `}</style>
 
@@ -128,14 +100,16 @@ export default function ShopByCategory() {
         </header>
 
         <section className="categories-grid">
-          {categories.map((cat, index) => (
-            <div key={index} className="category-card">
+          {categories.map((cat) => (
+            <div
+              key={cat.slug}
+              className="category-card"
+              onClick={() => navigate(`/category/${cat.slug}`)}
+            >
               <img src={cat.image} alt={cat.title} />
               <div className="category-overlay">
                 <h3>{cat.title}</h3>
-                <Link to={cat.link} className="explore-link">
-                  Explore Collection →
-                </Link>
+                <span className="explore-link">Explore Collection →</span>
               </div>
             </div>
           ))}

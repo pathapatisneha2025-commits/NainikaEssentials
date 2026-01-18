@@ -1,6 +1,9 @@
 import React from 'react';
+import { useNavigate } from "react-router-dom";
 
 const BestSellers = () => {
+    const navigate = useNavigate();
+
 const products = [
     {
       id: 1,
@@ -35,7 +38,7 @@ img: "https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?auto=format&f
       discount: "50% OFF",
       rating: 4.2,
       reviews: 8,
-      img: "https://images.unsplash.com/photo-1610030469915-9a08e3922037?auto=format&fit=crop&q=80&w=600&h=800"
+      img: "/greypants.jpeg"
     }
   ];
   return (
@@ -75,8 +78,12 @@ img: "https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?auto=format&f
       {/* Product Grid */}
       <div className="product-grid">
         {products.map((product) => (
-          <div key={product.id} className="card" style={styles.card}>
-            <div style={styles.imageContainer}>
+ <div
+            key={product.id}
+            className="card"
+            style={styles.card}
+            onClick={() => navigate("/shop")}
+          >            <div style={styles.imageContainer}>
               <img src={product.img} alt={product.name} style={styles.image} />
               <span style={styles.badgeLeft}>Best Seller</span>
               <span style={styles.badgeRight}>{product.discount}</span>

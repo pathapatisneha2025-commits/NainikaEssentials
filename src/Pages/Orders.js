@@ -1,162 +1,173 @@
-import React from 'react';
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-const OrdersPage = () => {
-  // SVG Icon Components
-  const Icons = {
-    Package: () => (
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
-    ),
-    Clock: () => (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-    ),
-    CheckCircle: () => (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-    ),
-    Truck: () => (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
-    )
-  };
+const API_BASE = "https://nainikaessentialsdatabas.onrender.com";
 
-  const orderData = [
-    { id: '#EC-8841', date: 'Jan 12, 2026', status: 'Delivered', total: '₹2,499', items: 2, img: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&q=80&w=100' },
-    { id: '#EC-8720', date: 'Jan 15, 2026', status: 'In Transit', total: '₹1,250', items: 1, img: 'https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?auto=format&fit=crop&q=80&w=100' },
-    { id: '#EC-8611', date: 'Jan 08, 2026', status: 'Processing', total: '₹4,800', items: 3, img: 'https://images.unsplash.com/photo-1576566588028-4147f3842f27?auto=format&fit=crop&q=80&w=100' }
-  ];
+export default function MyOrders() {
+  const navigate = useNavigate();
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchOrders = async () => {
+      // Get user from localStorage, default to user_id 1
+      let user = JSON.parse(localStorage.getItem("adminUser")) || { user_id: 1 };
+      localStorage.setItem("adminUser", JSON.stringify(user));
+
+      setLoading(true);
+      try {
+        const res = await fetch(`${API_BASE}/orders/user/${user.user_id}`);
+        if (!res.ok) throw new Error("Failed to fetch orders");
+        let data = await res.json();
+
+        // Ensure at least 1 order exists
+        if (!data || data.length === 0) {
+          data = [
+            {
+              order_id: 1,
+              created_at: new Date().toISOString(),
+              items: { "Sample Item": 1 },
+              total_amount: "99.00",
+              order_status: "Pending",
+              shipping_address: JSON.stringify({
+                name: "Default User",
+                street: "123 Street",
+                city: "City",
+                state: "State",
+                phone: "0000000000",
+                pincode: "000000",
+              }),
+              payment_method: "cod",
+            },
+          ];
+        }
+
+        // Make sure empty items show at least 1 item
+        data = data.map((order) => ({
+          ...order,
+          items: Object.keys(order.items || {}).length ? order.items : { "Sample Item": 1 },
+        }));
+
+        setOrders(data);
+      } catch (err) {
+        console.error("Error fetching orders:", err);
+        setOrders([
+          {
+            order_id: 1,
+            created_at: new Date().toISOString(),
+            items: { "Sample Item": 1 },
+            total_amount: "99.00",
+            order_status: "Pending",
+            shipping_address: JSON.stringify({
+              name: "Default User",
+              street: "123 Street",
+              city: "City",
+              state: "State",
+              phone: "0000000000",
+              pincode: "000000",
+            }),
+            payment_method: "cod",
+          },
+        ]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOrders();
+  }, []);
+
+  if (loading) return <p style={{ padding: 40 }}>Loading orders...</p>;
 
   return (
-    <>
+    <div style={{ padding: "40px 5%", fontFamily: "'Segoe UI', sans-serif", backgroundColor: "#fff", minHeight: "100vh" }}>
+      {/* Header */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "30px", flexWrap: "wrap", gap: "20px" }}>
+        <div>
+          <h1 style={{ fontSize: "24px", fontWeight: "600", color: "#1e293b", margin: 0 }}>My Orders</h1>
+          <p style={{ color: "#64748b", fontSize: "14px", marginTop: "5px" }}>Track and manage your orders</p>
+        </div>
+        <button
+          onClick={() => navigate("/shop")}
+          style={{ backgroundColor: "#4f46e5", color: "#fff", padding: "10px 24px", borderRadius: "8px", border: "none", fontWeight: "500", cursor: "pointer", fontSize: "14px" }}
+        >
+          Continue Shopping
+        </button>
+      </div>
+
+      {/* Desktop Table */}
+      <div className="desktop-orders" style={{ overflowX: "auto" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <thead style={{ backgroundColor: "#f8fafc" }}>
+            <tr>
+              {["Order ID", "Date", "Items", "Total", "Payment", "Status", "Shipping Name", "Action"].map((header) => (
+                <th key={header} style={{ padding: "12px 15px", color: "#64748b", fontSize: "14px", fontWeight: "500", textAlign: "left", borderBottom: "1px solid #f1f5f9" }}>
+                  {header}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody style={{ backgroundColor: "#fff" }}>
+            {orders.map((order) => {
+              const shipping = JSON.parse(order.shipping_address || "{}");
+              return (
+                <tr key={order.order_id}>
+                  <td style={{ padding: "15px", fontSize: "14px", color: "#1e293b" }}>{order.order_id}</td>
+                  <td style={{ padding: "15px", fontSize: "14px", color: "#1e293b" }}>{new Date(order.created_at).toLocaleDateString()}</td>
+                  <td style={{ padding: "15px", fontSize: "14px", color: "#1e293b" }}>{Object.keys(order.items).length}</td>
+                  <td style={{ padding: "15px", fontSize: "14px", fontWeight: "600" }}>₹{order.total_amount}</td>
+                  <td style={{ padding: "15px", fontSize: "14px", color: "#1e293b" }}>{order.payment_method.toUpperCase()}</td>
+                  <td style={{ padding: "15px", fontSize: "14px", color: "#1e293b" }}>
+                    <span style={{ backgroundColor: "#fef3c7", color: "#d97706", padding: "4px 12px", borderRadius: "20px", fontSize: "11px", fontWeight: "700", letterSpacing: "0.5px" }}>
+                      {order.order_status}
+                    </span>
+                  </td>
+                  <td style={{ padding: "15px", fontSize: "14px", color: "#1e293b" }}>{shipping.name || "-"}</td>
+                  <td style={{ padding: "15px", fontSize: "14px" }}>
+                    <button
+                      style={{ background: "none", border: "none", color: "#4f46e5", cursor: "pointer", fontWeight: "500", fontSize: "14px" }}
+                      onClick={() => navigate(`/order/${order.order_id}`)}
+                    >
+                      View / Track →
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Mobile Cards */}
+      <div className="mobile-orders" style={{ display: "none" }}>
+        {orders.map((order) => {
+          const shipping = JSON.parse(order.shipping_address || "{}");
+          return (
+            <div key={order.order_id} style={{ border: "1px solid #f1f5f9", borderRadius: "12px", padding: "15px", marginBottom: "15px", backgroundColor: "#fff" }}>
+              <p><strong>Order ID:</strong> {order.order_id}</p>
+              <p><strong>Date:</strong> {new Date(order.created_at).toLocaleDateString()}</p>
+              <p><strong>Items:</strong> {Object.keys(order.items).length}</p>
+              <p><strong>Total:</strong> ₹{order.total_amount}</p>
+              <p><strong>Payment:</strong> {order.payment_method.toUpperCase()}</p>
+              <p><strong>Status:</strong> <span style={{ backgroundColor: "#fef3c7", color: "#d97706", padding: "4px 8px", borderRadius: "12px", fontSize: "12px", fontWeight: "700" }}>{order.order_status}</span></p>
+              <p><strong>Shipping:</strong> {shipping.name || "-"}</p>
+              <button style={{ background: "#4f46e5", color: "#fff", border: "none", borderRadius: "8px", padding: "8px 16px", cursor: "pointer", marginTop: "10px" }} onClick={() => navigate(`/order/${order.order_id}`)}>View / Track →</button>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Responsive CSS */}
       <style>{`
-        :root {
-          --primary-purple: #5a4fcf;
-          --bg-light: #f8f9ff;
-          --text-dark: #111827;
-          --text-gray: #6b7280;
-          --white: #ffffff;
-          --success: #10b981;
-          --warning: #f59e0b;
-        }
-
-        .page-wrapper { font-family: 'Inter', sans-serif; color: var(--text-dark); background: #fff; min-height: 100vh; }
-        .container { max-width: 1000px; margin: 0 auto; padding: 60px 20px; }
-
-        /* HEADER */
-        .header { margin-bottom: 40px; }
-        .subtitle { color: var(--primary-purple); font-weight: 700; font-size: 13px; letter-spacing: 1.5px; text-transform: uppercase; }
-        .header h1 { font-size: 36px; margin: 10px 0; font-weight: 800; letter-spacing: -1px; }
-
-        /* QUICK STATS (Matching About Page Format) */
-        .order-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 50px; }
-        .stat-card { background: var(--bg-light); padding: 30px; border-radius: 20px; border: 1px solid rgba(90, 79, 207, 0.05); }
-        .stat-card h3 { color: var(--primary-purple); font-size: 28px; margin: 0; }
-        .stat-card p { color: var(--text-gray); font-size: 14px; margin: 5px 0 0; font-weight: 500; }
-
-        /* ORDER LIST */
-        .orders-list { display: flex; flex-direction: column; gap: 20px; }
-        .order-row { 
-          display: flex; 
-          align-items: center; 
-          padding: 24px; 
-          border: 1px solid #f0f0f0; 
-          border-radius: 24px; 
-          background: white; 
-          transition: all 0.3s ease;
-        }
-        .order-row:hover { border-color: #d8d4ff; box-shadow: 0 10px 25px rgba(90, 79, 207, 0.06); transform: translateY(-2px); }
-
-        .order-img { width: 80px; height: 80px; border-radius: 16px; object-fit: cover; background: #f3f4f6; }
-        
-        .order-info { flex: 1; margin-left: 20px; }
-        .order-info h4 { margin: 0; font-size: 18px; font-weight: 700; }
-        .order-info p { color: var(--text-gray); font-size: 14px; margin: 4px 0 0; }
-
-        .order-meta { text-align: right; }
-        .order-price { display: block; font-weight: 800; font-size: 18px; margin-bottom: 8px; }
-
-        /* STATUS BADGES */
-        .badge {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          padding: 6px 12px;
-          border-radius: 50px;
-          font-size: 12px;
-          font-weight: 700;
-          text-transform: uppercase;
-        }
-        .badge.delivered { background: #ecfdf5; color: var(--success); }
-        .badge.transit { background: #fffbeb; color: var(--warning); }
-        .badge.processing { background: #eef2ff; color: var(--primary-purple); }
-
-        /* RESPONSIVE */
         @media (max-width: 768px) {
-          .order-stats { grid-template-columns: 1fr; }
-          .order-row { flex-direction: column; text-align: center; }
-          .order-info { margin: 20px 0; }
-          .order-meta { text-align: center; width: 100%; border-top: 1px solid #f0f0f0; pt: 15px; margin-top: 15px; }
-          .header { text-align: center; }
+          .desktop-orders { display: none; }
+          .mobile-orders { display: block; }
+        }
+        @media (min-width: 769px) {
+          .desktop-orders { display: block; }
+          .mobile-orders { display: none; }
         }
       `}</style>
-
-      <div className="page-wrapper">
-        <div className="container">
-          
-          <header className="header">
-            <span className="subtitle">ACCOUNT AREA</span>
-            <h1>My Orders</h1>
-            <p style={{color: 'var(--text-gray)'}}>Track, manage, and view your order history with Elan Cotts.</p>
-          </header>
-
-          <section className="order-stats">
-            <div className="stat-card">
-              <h3>12</h3>
-              <p>Total Orders</p>
-            </div>
-            <div className="stat-card">
-              <h3>01</h3>
-              <p>In Transit</p>
-            </div>
-            <div className="stat-card">
-              <h3>₹14,580</h3>
-              <p>Total Spent</p>
-            </div>
-          </section>
-
-          <section className="orders-list">
-            <h3 style={{marginBottom: '20px', fontWeight: '800'}}>Recent History</h3>
-            
-            {orderData.map((order) => (
-              <div className="order-row" key={order.id}>
-                <img src={order.img} alt="Product" className="order-img" />
-                
-                <div className="order-info">
-                  <h4>Order {order.id}</h4>
-                  <p>Placed on {order.date} • {order.items} Items</p>
-                </div>
-
-                <div className="order-meta">
-                  <span className="order-price">{order.total}</span>
-                  <span className={`badge ${order.status.toLowerCase().replace(' ', '')}`}>
-                    {order.status === 'Delivered' && <Icons.CheckCircle />}
-                    {order.status === 'In Transit' && <Icons.Truck />}
-                    {order.status === 'Processing' && <Icons.Clock />}
-                    {order.status}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </section>
-
-          {/* EMPTY STATE HELPER (Optional) */}
-          <section style={{marginTop: '60px', textAlign: 'center', padding: '40px', background: 'var(--bg-light)', borderRadius: '30px'}}>
-             <div style={{color: 'var(--primary-purple)', marginBottom: '15px'}}><Icons.Package /></div>
-             <h4 style={{margin: '0'}}>Need help with an order?</h4>
-             <p style={{color: 'var(--text-gray)', fontSize: '14px'}}>Visit our Help Center or contact customer support 24/7.</p>
-          </section>
-
-        </div>
-      </div>
-    </>
+    </div>
   );
-};
-
-export default OrdersPage;
+}

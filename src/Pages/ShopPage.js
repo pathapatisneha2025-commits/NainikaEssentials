@@ -1,16 +1,21 @@
 import React, { useState } from 'react';
 import { Search, Menu, X, ShoppingCart, User, ChevronRight, MessageCircle, Star } from 'lucide-react';
+import { useNavigate } from "react-router-dom";
 
 const ShopPage = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const navigate = useNavigate();
 
   const categories = ["Shirts", "Clothing", "Hoodie", "Pants"];
   const products = [
-    { id: 1, name: "Elegant Onion Pink Silk Saree with Geometric Weave &...", discount: "40%", img: "https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=400", rating: 4.0, reviews: 5 },
-    { id: 2, name: "Radiant Gold Tissue Silk Saree with Antique Zari Work", discount: "52%", img: "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=400", rating: 3.5, reviews: 2 },
-    { id: 3, name: "Midnight Noir Sequinned Georgette Saree", discount: "50%", img: "https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?w=400", rating: 4.5, reviews: 10 },
-    { id: 4, name: "Elegant Handloom Silk Saree with Zari Border", discount: "50%", img: "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=400", rating: 4.2, reviews: 8 },
+    { id: 1, name: "Elegant Onion Pink Silk Saree with Geometric Weave &...", discount: "40%", img: "https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=400", rating: 4.0, reviews: 5 ,slug: "elegant-onion-pink-silk-saree"},
+    { id: 2, name: "Radiant Gold Tissue Silk Saree with Antique Zari Work", discount: "52%", img: "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=400", rating: 3.5, reviews: 2 ,slug: "radiant-gold-tissue-silk-saree"},
+    { id: 3, name: "Midnight Noir Sequinned Georgette Saree", discount: "50%", img: "https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?w=400", rating: 4.5, reviews: 10 ,slug: "midnight-noir-sequinned-georgette-saree"},
+    { id: 4, name: "Elegant Handloom Silk Saree with Zari Border", discount: "50%", img: "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=400", rating: 4.2, reviews: 8 ,slug: "elegant-handloom-silk-saree"},
   ];
+const handleProductClick = (product) => {
+  navigate(`/product/${product.id}/${product.slug}`);
+};
 
   return (
     <>
@@ -110,7 +115,7 @@ const ShopPage = () => {
 
             <div className="grid">
               {products.map(p => (
-                <div key={p.id} className="card">
+                <div key={p.id} className="card" onClick={() => handleProductClick(p)}>
                   <div className="img-box">
                     <img src={p.img} alt={p.name} />
                     <div className="badge-best">Best Seller</div>

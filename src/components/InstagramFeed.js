@@ -21,7 +21,7 @@ const InstagramFeed = () => {
     },
     { 
       id: 5, 
-      img: "https://images.unsplash.com/photo-1594186937664-924b17a14e1a?q=80&w=600&h=933&fit=crop", 
+      img: "/blackhoddie.jpeg", 
       alt: "Fashion Model Portrait" 
     },
   ];

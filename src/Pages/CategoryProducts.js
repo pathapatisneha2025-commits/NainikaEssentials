@@ -26,11 +26,20 @@ const PRODUCTS = [
     name: "Casual Shirt",
     price: 999,
     category: "shirts",
-    image: "/shirt1.jpeg",
+    image: "/shirts.jpeg",
     description: "Lightweight casual shirt suitable for everyday use.",
   },
   {
     id: 4,
+    slug: "T-shirt",
+    name: "CasualT Shirt",
+    price: 999,
+    category: "shirts",
+    image: "/Tshirt.jpeg",
+    description: "Lightweight casual shirt suitable for everyday use.",
+  },
+  {
+    id: 5,
     slug: "formal-pants",
     name: "Formal Pants",
     price: 1199,
@@ -39,14 +48,24 @@ const PRODUCTS = [
     description: "Slim-fit formal pants for office and occasions.",
   },
   {
-    id: 5,
+    id: 6,
+    slug: "formal-pants",
+    name: "Formal Pants",
+    price: 1199,
+    category: "pants",
+    image: "/greypants.jpeg",
+    description: "Slim-fit formal pants for office and occasions.",
+  },
+  {
+    id: 7,
     slug: "t-shirt",
     name: "T-Shirt",
     price: 699,
     category: "clothing",
-    image: "/clothing1.jpeg",
+    image: "/pinksaree.jpeg",
     description: "Soft cotton t-shirt with breathable fabric.",
   },
+   
 ];
 
 export default function CategoryProducts() {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate ,Link} from 'react-router-dom';
 
 const BASE_URL = 'https://nainikaessentialsdatabas.onrender.com';
 
@@ -131,8 +131,16 @@ const LoginPage = () => {
                 </div>
               </div>
 
-              <button type="submit" className="login-btn">{loading ? 'Signing in...' : 'Login'}</button>
-              <div className="signup-text">Don't have an account? <a href="/register">Create one</a></div>
+             <button type="submit" className="login-btn">
+  {loading ? "Signing in..." : "Login"}
+</button>
+
+<div className="signup-text">
+  Don't have an account?{" "}
+  <Link to="/register" className="signup-link">
+    Create one
+  </Link>
+</div>
             </form>
           </div>
         </div>

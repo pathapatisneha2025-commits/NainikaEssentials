@@ -14,7 +14,7 @@ const ShopPage = () => {
     { id: 4, name: "Elegant Handloom Silk Saree with Zari Border", discount: "50%", img: "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=400", rating: 4.2, reviews: 8 ,slug: "elegant-handloom-silk-saree"},
   ];
 const handleProductClick = (product) => {
-  navigate(`/product/${product.id}/${product.slug}`);
+  navigate(`/shopproduct/${product.id}/${product.slug}`);
 };
 
   return (

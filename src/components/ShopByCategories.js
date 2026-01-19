@@ -2,10 +2,11 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 
 const categories = [
-  { title: "Hoodie", image: "/hoodie.jpeg", slug: "hoodie" },
-  { title: "Clothing", image: "/clothing.jpeg", slug: "clothing" },
-  { title: "Shirts", image: "/shirts.jpeg", slug: "shirts" },
-  { title: "Pants", image: "/pants.jpeg", slug: "pants" },
+  // Changed extensions to .jpg to match common web assets seen in your screenshots
+  { title: "Hoodie", image: "/hoodie.jpg", slug: "hoodie" },
+  { title: "Clothing", image: "/clothing.jpg", slug: "clothing" },
+  { title: "Shirts", image: "/shirts.jpg", slug: "shirts" },
+  { title: "Pants", image: "/pants.jpg", slug: "pants" },
 ];
 
 export default function ShopByCategory() {
@@ -15,51 +16,55 @@ export default function ShopByCategory() {
     <>
       <style>{`
         .shop-container {
-          padding: 40px 5%;
-          font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+          padding: 60px 5%;
+          font-family: 'Inter', sans-serif;
+          background: #fff; /* Ensures white background covers the hero banner background */
+          position: relative;
+          z-index: 5; /* Brings the categories above any fixed background images */
         }
 
         .header-section {
-          margin-bottom: 25px;
+          margin-bottom: 30px;
         }
 
         .header-section h2 {
-          font-size: 28px;
-          font-weight: 400;
+          font-size: 32px;
+          font-weight: 600;
           color: #111;
           margin: 0;
         }
 
         .header-section p {
-          color: #777;
-          font-size: 14px;
-          margin-top: 4px;
+          color: #666;
+          font-size: 16px;
+          margin-top: 6px;
         }
 
         .categories-grid {
           display: grid;
           grid-template-columns: repeat(4, 1fr);
-          gap: 15px;
+          gap: 20px;
         }
 
         .category-card {
           position: relative;
           overflow: hidden;
           cursor: pointer;
-          border-radius: 2px;
-          aspect-ratio: 3 / 4.2;
+          border-radius: 8px; /* Slightly more rounded like your reference style */
+          aspect-ratio: 3 / 4;
+          background-color: #f5f5f5; /* Placeholder color while image loads */
         }
 
         .category-card img {
           width: 100%;
           height: 100%;
           object-fit: cover;
-          transition: transform 0.6s ease;
+          transition: transform 0.5s ease;
           display: block;
         }
 
         .category-card:hover img {
-          transform: scale(1.04);
+          transform: scale(1.05);
         }
 
         .category-overlay {
@@ -67,20 +72,26 @@ export default function ShopByCategory() {
           bottom: 0;
           left: 0;
           width: 100%;
-          padding: 20px;
-          background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 100%);
+          padding: 25px 20px;
+          /* Darker gradient for better text readability */
+          background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 100%);
           color: #fff;
         }
 
         .category-overlay h3 {
           margin: 0;
-          font-size: 18px;
-          font-weight: 500;
+          font-size: 20px;
+          font-weight: 600;
+          letter-spacing: 0.5px;
         }
 
         .explore-link {
-          font-size: 12px;
-          opacity: 0.85;
+          display: block;
+          margin-top: 5px;
+          font-size: 13px;
+          text-transform: uppercase;
+          letter-spacing: 1px;
+          opacity: 0.9;
         }
 
         @media (max-width: 1024px) {
@@ -89,7 +100,7 @@ export default function ShopByCategory() {
 
         @media (max-width: 600px) {
           .categories-grid { grid-template-columns: 1fr; }
-          .header-section h2 { font-size: 24px; }
+          .shop-container { padding: 40px 20px; }
         }
       `}</style>
 
@@ -106,7 +117,14 @@ export default function ShopByCategory() {
               className="category-card"
               onClick={() => navigate(`/category/${cat.slug}`)}
             >
-              <img src={cat.image} alt={cat.title} />
+              <img 
+                src={cat.image} 
+                alt={cat.title} 
+                onError={(e) => {
+                  // Fallback to .jpeg if .jpg fails
+                  if(e.target.src.includes('.jpg')) e.target.src = cat.image.replace('.jpg', '.jpeg');
+                }}
+              />
               <div className="category-overlay">
                 <h3>{cat.title}</h3>
                 <span className="explore-link">Explore Collection →</span>

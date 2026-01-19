@@ -1,123 +1,182 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom'; 
 import { FiX, FiMessageCircle, FiPhone, FiMail } from "react-icons/fi";
 import { FaWhatsapp } from "react-icons/fa";
 
 const LandingPage = () => {
   const [isOpen, setIsOpen] = useState(false);
-  
-  // Main Page Banners
-  const mainImages = ["/landingimage.jpeg", "/banner2.jpeg", "/banner3.jpeg"];
-  const scrollingMain = [...mainImages, ...mainImages];
+  const navigate = useNavigate();
 
-  // Chat Box Banners (Sankranti Sale)
-  // Even if you only have one image, doubling it allows it to scroll smoothly
-  const saleImages = ["/sale-banner.jpeg", "/sale-banner.jpeg"]; 
+  const saleImages = ["/shoptoday.jpeg", "/featured.jpeg"]; 
   const scrollingSale = [...saleImages, ...saleImages];
 
   return (
-    <>
+    <div className="page-container">
       <style>{cssStyles}</style>
-      <div className="wrapper">
-        <main className="container">
-          {/* Main Hero Continuous Scroll */}
-          <section className="hero-slider">
-            <div className="slider-track main-track">
-              {scrollingMain.map((img, index) => (
-                <div key={index} className="slide"><img src={img} alt="banner" /></div>
+      
+      <section className="hero-banner" onClick={() => navigate('/shop')}></section>
+
+      <section className="category-section">
+        <h2>Shop by Category</h2>
+        <div className="category-grid">
+           <div className="cat-card">HOODIE</div>
+           <div className="cat-card">TRADITIONAL</div>
+           <div className="cat-card">SHIRTS</div>
+           <div className="cat-card">DENIM</div>
+        </div>
+      </section>
+
+      {/* Floating Chat Widget */}
+      <div className="chat-bubble" onClick={() => setIsOpen(!isOpen)}>
+        {isOpen ? <FiX size={24} /> : <FiMessageCircle size={24} />}
+      </div>
+
+      {isOpen && (
+        <div className="chat-modal">
+          {/* HEADER WITH REDUCED HEIGHT */}
+          <div className="modal-header">
+            <div className="slider-track modal-track">
+              {scrollingSale.map((img, index) => (
+                <div key={index} className="modal-slide">
+                  <img src={img} alt="sale" />
+                </div>
               ))}
             </div>
-          </section>
-        </main>
-
-        <div className={`chat-bubble ${isOpen ? 'modal-open' : ''}`} onClick={() => setIsOpen(!isOpen)}>
-          {isOpen ? <FiX size={26} /> : <FiMessageCircle size={26} />}
-        </div>
-
-        {isOpen && (
-          <div className="chat-modal">
-            {/* CONTINUOUS SCROLLING INSIDE MODAL HEADER */}
-            <div className="modal-header">
-              <div className="slider-track modal-track">
-                {scrollingSale.map((img, index) => (
-                  <div key={index} className="modal-slide"><img src={img} alt="sale" /></div>
-                ))}
-              </div>
-              <button className="modal-close-btn" onClick={() => setIsOpen(false)}>
-                <FiX size={16} />
-              </button>
+            {/* CLOSE BUTTON - Fixed Z-Index */}
+            <button className="modal-close-btn" onClick={(e) => { e.stopPropagation(); setIsOpen(false); }}>
+              <FiX size={18} />
+            </button>
+          </div>
+          
+          <div className="modal-body">
+            <div className="modal-intro">
+              <h3>How can we help?</h3>
+              <p>Choose one option below</p>
             </div>
             
-            <div className="modal-body">
-              <div className="modal-intro">
-                <h3>How can we help?</h3>
-                <p>Choose an option below</p>
+            <div className="options-container">
+              <div className="support-option" onClick={() => window.open('https://wa.me/yournumber', '_blank')}>
+                <div className="option-icon whatsapp"><FaWhatsapp /></div>
+                <div className="option-text">
+                  <strong>Chat with us</strong>
+                  <span>Instant WhatsApp support</span>
+                </div>
               </div>
-              
-              <div className="options-container">
-                <div className="support-option" onClick={() => window.open('https://wa.me/yournumber')}>
-                  <div className="option-icon whatsapp"><FaWhatsapp /></div>
-                  <div className="option-text">
-                    <strong>Chat with us</strong>
-                    <span>WhatsApp support</span>
-                  </div>
+
+              <div className="support-option">
+                <div className="option-icon phone"><FiPhone /></div>
+                <div className="option-text">
+                  <strong>Talk to us</strong>
+                  <span>Call customer care</span>
                 </div>
-                <div className="support-option">
-                  <div className="option-icon phone"><FiPhone /></div>
-                  <div className="option-text"><strong>Talk to us</strong><span>Call customer care</span></div>
-                </div>
-                <div className="support-option">
-                  <div className="option-icon mail"><FiMail /></div>
-                  <div className="option-text"><strong>Write to us</strong><span>Email support</span></div>
+              </div>
+
+              <div className="support-option">
+                <div className="option-icon mail"><FiMail /></div>
+                <div className="option-text">
+                  <strong>Write to us</strong>
+                  <span>Email support</span>
                 </div>
               </div>
             </div>
           </div>
-        )}
-      </div>
-    </>
+        </div>
+      )}
+    </div>
   );
 };
 
 const cssStyles = `
-  :root { --brand-blue: #4f46e5; }
+  .page-container { width: 100%; min-height: 100vh; font-family: 'Inter', sans-serif; }
 
-  /* Track Logic */
-  .slider-track { display: flex; width: calc(200%); }
+  .hero-banner {
+    width: 100%; height: 400px;
+    background: url('/landingimage.jpeg') no-repeat center center/cover;
+    cursor: pointer;
+  }
+
+  /* CHAT MODAL - COMPACT */
+  .chat-modal { 
+    position: fixed; 
+    bottom: 90px; 
+    right: 25px; 
+    width: 330px; 
+    max-height: 500px; /* Limits total height */
+    background: white; 
+    border-radius: 20px; 
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15); 
+    overflow: hidden; 
+    z-index: 9999; 
+  }
   
-  /* Main Slider - 25 seconds */
-  .main-track { animation: scrollContinuous 25s linear infinite; }
+  /* Reduced Header Height */
+  .modal-header { position: relative; width: 100%; height: 130px; overflow: hidden; }
   
-  /* Modal Slider - 10 seconds (faster for small area) */
-  .modal-track { animation: scrollContinuous 10s linear infinite; }
+  .slider-track { display: flex; width: max-content; }
+  .modal-track { animation: scrollContinuous 12s linear infinite; }
 
   @keyframes scrollContinuous {
     0% { transform: translateX(0); }
     100% { transform: translateX(-50%); }
   }
 
-  .hero-slider { position: relative; width: 100%; height: 400px; margin-top: 20px; border-radius: 12px; overflow: hidden; }
-  .slide { width: 100%; height: 400px; flex-shrink: 0; }
-  .slide img { width: 100%; height: 100%; object-fit: cover; }
-
-  /* Chat Modal Styles */
-  .chat-modal { position: fixed; bottom: 90px; right: 25px; width: 340px; background: white; border-radius: 20px; box-shadow: 0 15px 45px rgba(0,0,0,0.15); overflow: hidden; z-index: 2001; }
-  
-  /* Modal Header with Scroll */
-  .modal-header { position: relative; width: 100%; height: 140px; overflow: hidden; }
-  .modal-slide { width: 100%; height: 140px; flex-shrink: 0; }
+  /* Slide matches new header height */
+  .modal-slide { width: 330px; height: 130px; flex-shrink: 0; }
   .modal-slide img { width: 100%; height: 100%; object-fit: cover; }
 
-  .modal-close-btn { position: absolute; top: 12px; right: 12px; background: rgba(255,255,255,0.8); border: none; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 20; color: #000; }
-  .chat-bubble { position: fixed; bottom: 25px; right: 25px; background: #4b49e0; width: 55px; height: 55px; border-radius: 50%; display: flex; justify-content: center; align-items: center; color: white; cursor: pointer; z-index: 2000; }
+  /* CLOSE BUTTON - Forced to the top layer */
+  .modal-close-btn { 
+    position: absolute; 
+    top: 10px; 
+    right: 10px; 
+    background: white; 
+    border: none; 
+    width: 30px; 
+    height: 30px; 
+    border-radius: 50%; 
+    cursor: pointer; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    z-index: 100; /* Higher than images */
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    color: #333;
+  }
 
-  .modal-body { padding: 20px; }
-  .modal-intro h3 { margin: 0; font-size: 1.2rem; font-weight: 700; }
-  .modal-intro p { margin: 2px 0 15px 0; color: #777; font-size: 0.95rem; }
+  /* Compact Body */
+  .modal-body { padding: 18px; }
+  .modal-intro h3 { margin: 0; font-size: 1.1rem; font-weight: 700; color: #111; }
+  .modal-intro p { margin: 2px 0 15px 0; color: #666; font-size: 0.85rem; }
+
   .options-container { display: flex; flex-direction: column; gap: 10px; }
-  .support-option { display: flex; align-items: center; gap: 15px; padding: 12px 16px; border: 1px solid #f1f1f6; border-radius: 15px; cursor: pointer; }
-  .option-icon { font-size: 1.4rem; color: #4b49e0; }
-  .option-text strong { display: block; font-size: 1rem; }
-  .option-text span { font-size: 0.85rem; color: #999; }
+
+  /* Compact Options */
+  .support-option { 
+    display: flex; 
+    align-items: center; 
+    gap: 12px; 
+    padding: 12px; 
+    border: 1px solid #f0f0f0; 
+    border-radius: 15px; 
+    cursor: pointer;
+    transition: 0.2s ease;
+  }
+  .support-option:hover { background: #f9f9ff; border-color: #4b49e0; }
+
+  .option-icon { font-size: 1.3rem; color: #4b49e0; }
+  .option-text strong { display: block; font-size: 0.95rem; color: #111; }
+  .option-text span { font-size: 0.8rem; color: #888; }
+
+  .chat-bubble { 
+    position: fixed; bottom: 25px; right: 25px; 
+    background: #4b49e0; width: 55px; height: 55px; 
+    border-radius: 50%; display: flex; justify-content: center; 
+    align-items: center; color: white; cursor: pointer; z-index: 9998;
+  }
+
+  .category-section { padding: 40px 20px; }
+  .category-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; }
+  .cat-card { background: #eee; height: 150px; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
 `;
 
 export default LandingPage;

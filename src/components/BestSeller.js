@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate } from "react-router-dom";
+import { Link,useNavigate } from "react-router-dom";
 
 const BestSellers = () => {
     const navigate = useNavigate();
@@ -72,7 +72,11 @@ img: "https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?auto=format&f
           <h2 style={styles.title}>Best Sellers</h2>
           <p style={styles.subtitle}>Customer favorites crafted for comfort, fit, and everyday style.</p>
         </div>
-        <button style={styles.viewAllBtn}>View all &rsaquo;</button>
+<Link to="/shop" style={{ textDecoration: "none" }}>
+  <button style={styles.viewAllBtn}>
+    View all &rsaquo;
+  </button>
+</Link>
       </div>
 
       {/* Product Grid */}

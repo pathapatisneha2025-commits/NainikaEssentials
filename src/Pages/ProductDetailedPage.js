@@ -6,9 +6,9 @@ import { Share2, MessageCircle, User } from "lucide-react";
 const PRODUCTS = [
   { id: 1, slug: "black-hoodie", name: "Black Hoodie", price: 1299, originalPrice: 1999, category: "hoodie", image: "/blackhoddie.jpeg", description: "Premium black cotton hoodie with a comfortable fit.", colors: ["Black", "White"], fabric: "Cotton", care: "Machine Wash", stock: 12 },
   { id: 2, slug: "grey-hoodie", name: "Grey Hoodie", price: 1399, originalPrice: 2499, category: "hoodie", image: "/hoodie.jpeg", description: "Stylish grey hoodie perfect for casual wear.", colors: ["Grey", "Black"], fabric: "Cotton Blend", care: "Machine Wash", stock: 8 },
-  { id: 3, slug: "casual-shirt", name: "Casual Shirt", price: 999, originalPrice: 1499, category: "shirts", image: "/shirt1.jpeg", description: "Lightweight casual shirt suitable for everyday use.", colors: ["Blue", "White", "Grey"], fabric: "Linen", care: "Hand Wash", stock: 20 },
-  { id: 4, slug: "formal-pants", name: "Formal Pants", price: 1199, originalPrice: 1999, category: "pants", image: "/pants1.jpeg", description: "Slim-fit formal pants for office and occasions.", colors: ["Black", "Navy"], fabric: "Polyester Blend", care: "Dry Clean Only", stock: 10 },
-  { id: 5, slug: "t-shirt", name: "T-Shirt", price: 699, originalPrice: 999, category: "clothing", image: "/clothing1.jpeg", description: "Soft cotton t-shirt with breathable fabric.", colors: ["White", "Grey", "Blue"], fabric: "Cotton", care: "Machine Wash", stock: 15 },
+  { id: 3, slug: "casual-shirt", name: "Casual Shirt", price: 999, originalPrice: 1499, category: "shirts", image: "/tshirt.jpeg", description: "Lightweight casual shirt suitable for everyday use.", colors: ["Blue", "White", "Grey"], fabric: "Linen", care: "Hand Wash", stock: 20 },
+  { id: 4, slug: "formal-pants", name: "Formal Pants", price: 1199, originalPrice: 1999, category: "pants", image: "/whitepants.jpeg", description: "Slim-fit formal pants for office and occasions.", colors: ["Black", "Navy"], fabric: "Polyester Blend", care: "Dry Clean Only", stock: 10 },
+  { id: 5, slug: "t-shirt", name: "T-Shirt", price: 699, originalPrice: 999, category: "clothing", image: "/tshirt.jpeg", description: "Soft cotton t-shirt with breathable fabric.", colors: ["White", "Grey", "Blue"], fabric: "Cotton", care: "Machine Wash", stock: 15 },
 
   // NEW ARRIVALS
   { id: 6, slug: "winter-fleece-hoodie", name: "Winter Fleece Hoodie", price: 1299, originalPrice: 1999, category: "hoodie", image: "/blackHoddie.jpeg", description: "Cozy winter fleece hoodie for ultimate comfort.", colors: ["Black", "Grey"], fabric: "Cotton", care: "Machine Wash", stock: 10 },
@@ -104,7 +104,70 @@ const handleAddToCart = async () => {
   const decrementQty = () => { if (qty > 1) setQty(qty - 1); };
 
   return (
+    
     <div style={{ fontFamily: "'Segoe UI', Roboto, Helvetica, Arial, sans-serif" }}>
+      <style>
+{`
+/* ================= MOBILE RESPONSIVE ONLY ================= */
+@media (max-width: 768px) {
+
+  /* Main product layout */
+  .product-mobile-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 20px !important;
+  }
+
+  /* Thumbnails row */
+  .product-thumbs {
+    flex-direction: row !important;
+    overflow-x: auto !important;
+    gap: 10px !important;
+  }
+
+  .product-thumbs div {
+    width: 60px !important;
+    height: 80px !important;
+    flex-shrink: 0;
+  }
+
+  /* Main image */
+  .product-main-image img {
+    width: 100% !important;
+    height: auto !important;
+  }
+
+  /* Product details spacing */
+  .product-details {
+    padding-left: 0 !important;
+  }
+
+  /* Buttons full width */
+  .product-buttons {
+    flex-direction: column !important;
+  }
+
+  .product-buttons button {
+    width: 100% !important;
+  }
+
+  /* Similar products cards */
+  .similar-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .similar-grid img {
+    height: 260px !important;
+  }
+
+  /* Reviews */
+  .review-card {
+    padding: 20px !important;
+  }
+}
+`}
+</style>
+
       {/* Product Main Section */}
       <div style={{
         padding: "40px 5%",

@@ -16,15 +16,7 @@ const LandingPage = () => {
       
       <section className="hero-banner" onClick={() => navigate('/shop')}></section>
 
-      <section className="category-section">
-        <h2>Shop by Category</h2>
-        <div className="category-grid">
-           <div className="cat-card">HOODIE</div>
-           <div className="cat-card">TRADITIONAL</div>
-           <div className="cat-card">SHIRTS</div>
-           <div className="cat-card">DENIM</div>
-        </div>
-      </section>
+     
 
       {/* Floating Chat Widget */}
       <div className="chat-bubble" onClick={() => setIsOpen(!isOpen)}>

@@ -17,62 +17,43 @@ import {
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [cartCount, setCartCount] = useState(0);
-  const [showPopup, setShowPopup] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem("adminUser"));
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Lock body scroll when menu is open
   useEffect(() => {
     document.body.style.overflow = menuOpen ? "hidden" : "auto";
   }, [menuOpen]);
 
-  // Close menu when route changes
   useEffect(() => {
     setMenuOpen(false);
   }, [location.pathname]);
 
-  // Update cart count
   const updateCartCount = () => {
     const storedCart = JSON.parse(localStorage.getItem("cart")) || [];
     const count = storedCart.reduce((acc, item) => acc + item.qty, 0);
     setCartCount(count);
   };
 
-  // Sync login state and cart count on mount and storage change
   useEffect(() => {
     updateCartCount();
-
     const handleStorageChange = () => {
-      setCartCount(
-        (JSON.parse(localStorage.getItem("cart")) || []).reduce(
-          (acc, item) => acc + item.qty,
-          0
-        )
-      );
+      updateCartCount();
       setIsLoggedIn(!!localStorage.getItem("adminUser"));
     };
-
     window.addEventListener("storage", handleStorageChange);
     return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
 
-  // Ensure isLoggedIn updates on every route change
   useEffect(() => {
     setIsLoggedIn(!!localStorage.getItem("adminUser"));
   }, [location.pathname]);
 
-  // Logout
   const handleLogout = () => {
     localStorage.removeItem("adminUser");
     setIsLoggedIn(false);
     setMenuOpen(false);
     navigate("/login", { replace: true });
-  };
-
-  const handleViewOffers = () => {
-    setShowPopup(false);
-    navigate("/category/clothing");
   };
 
   return (
@@ -94,26 +75,21 @@ export default function Navbar() {
         .sidebar-logo { font-weight: 800; font-size: 20px; color: #1a1a1a; }
         .sidebar-content { padding: 15px; flex: 1; overflow-y: auto; }
         .sidebar-link { display: flex; align-items: center; justify-content: space-between; padding: 16px; text-decoration: none; color: #333; font-weight: 500; font-size: 16px; border-radius: 12px; margin-bottom: 5px; transition: 0.2s; }
-        .sidebar-link-content { display: flex; align-items: center; gap: 15px; }
+        .sidebar-link-content { display: flex; align-items: center; gap: 15px; position: relative; }
         .sidebar-link-content svg { font-size: 20px; color: #5b5bf0; }
         .sidebar-link.active { background: #f0f2ff; color: #5b5bf0; }
         .sidebar-footer { padding: 20px; border-top: 1px solid #f5f5f5; }
         .mobile-bottom-nav { display: none; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 92%; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); height: 65px; border-radius: 35px; box-shadow: 0 8px 30px rgba(0,0,0,0.1); z-index: 1000; justify-content: space-around; align-items: center; border: 1px solid #eee; }
-        .cart-badge { position: absolute; top: -8px; right: -10px; background: #ff4d4f; color: white; border-radius: 50%; font-size: 10px; padding: 2px 6px; }
-        @media (max-width: 992px) {
-          .nav-center, .nav-right { display: none; }
-          .mobile-bottom-nav { display: flex; }
-          .hamburger { display: block; font-size: 28px; cursor: pointer; }
-        }
-        .hamburger { display: none; }
-        @media (min-width: 993px) {
-          .sidebar, .sidebar-overlay { display: none !important; }
-        }
+        .cart-badge { background: #ff4d4f; color: white; border-radius: 50%; font-size: 10px; padding: 2px 6px; }
+        .nav-right .cart-badge { position: absolute; top: -8px; right: -10px; }
+        .sidebar-badge { margin-left: auto; background: #ff4d4f; color: white; border-radius: 50%; font-size: 12px; padding: 2px 8px; }
+        .m-nav-item { color: #666; font-size: 24px; display: flex; align-items: center; text-decoration: none; }
         @media (max-width: 992px) {
           .nav-center, .nav-right { display: none; }
           .mobile-bottom-nav { display: flex; }
           .hamburger { display: block; font-size: 28px; cursor: pointer; color: #333; }
         }
+        .hamburger { display: none; }
       `}</style>
 
       {/* Sidebar */}
@@ -123,6 +99,7 @@ export default function Navbar() {
           <span className="sidebar-logo">NainikaEssentials</span>
           <FiX size={26} onClick={() => setMenuOpen(false)} style={{ cursor: 'pointer' }} />
         </div>
+        
         <div className="sidebar-content">
           <NavLink to="/" className="sidebar-link">
             <div className="sidebar-link-content"><FiHome /> Home</div>
@@ -132,6 +109,15 @@ export default function Navbar() {
             <div className="sidebar-link-content"><FiPackage /> Shop</div>
             <FiChevronRight color="#ccc" />
           </NavLink>
+
+          {/* ADDED CART TO SIDEBAR */}
+          <NavLink to="/cart" className="sidebar-link">
+            <div className="sidebar-link-content">
+                <FiShoppingCart /> Cart
+            </div>
+            {cartCount > 0 ? <span className="sidebar-badge">{cartCount}</span> : <FiChevronRight color="#ccc" />}
+          </NavLink>
+
           <NavLink to="/orders" className="sidebar-link">
             <div className="sidebar-link-content"><FiShoppingBag /> My Orders</div>
             <FiChevronRight color="#ccc" />
@@ -145,11 +131,18 @@ export default function Navbar() {
             <FiChevronRight color="#ccc" />
           </NavLink>
         </div>
+
         <div className="sidebar-footer">
           {isLoggedIn ? (
-            <div className="sidebar-link" onClick={handleLogout} style={{ color: '#ff4d4f', cursor: 'pointer' }}>
-              <div className="sidebar-link-content"><FiLogOut /> Logout</div>
-            </div>
+            <>
+              {/* Optional: User Profile Link in Sidebar */}
+              <div className="sidebar-link">
+                <div className="sidebar-link-content"><FiUser /> My Profile</div>
+              </div>
+              <div className="sidebar-link" onClick={handleLogout} style={{ color: '#ff4d4f', cursor: 'pointer' }}>
+                <div className="sidebar-link-content"><FiLogOut /> Logout</div>
+              </div>
+            </>
           ) : (
             <NavLink to="/login" className="sidebar-link">
               <div className="sidebar-link-content"><FiUser /> Login / Register</div>
@@ -159,12 +152,13 @@ export default function Navbar() {
         </div>
       </aside>
 
-      {/* Navbar */}
+      {/* Main Navbar */}
       <header className="navbar">
         <NavLink to="/" className="logo" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <img src="/logoimage.jpeg" alt="ElanCotts" style={{ height: '40px', width: 'auto' }} />
+          <img src="/logoimage.jpeg" alt="Logo" style={{ height: '40px', width: 'auto' }} />
           NainikaEssentials
         </NavLink>
+
         <nav className="nav-center">
           <NavLink to="/" className="nav-item"><FiHome /> Home</NavLink>
           <NavLink to="/shop" className="nav-item"><FiPackage /> Shop</NavLink>
@@ -172,9 +166,10 @@ export default function Navbar() {
           <NavLink to="/about" className="nav-item"><FiInfo /> About</NavLink>
           <NavLink to="/contact" className="nav-item"><FiPhone /> Contact</NavLink>
         </nav>
+
         <div className="nav-right">
           {isLoggedIn ? (
-            <FiUser className="icon-link" onClick={handleLogout} style={{ cursor: "pointer" }} />
+            <FiUser className="icon-link" onClick={() => navigate("/profile")} style={{ cursor: "pointer" }} />
           ) : (
             <NavLink to="/login" className="icon-link"><FiUser /></NavLink>
           )}
@@ -183,6 +178,7 @@ export default function Navbar() {
             {cartCount > 0 && <span className="cart-badge">{cartCount}</span>}
           </NavLink>
         </div>
+
         <div className="hamburger" onClick={() => setMenuOpen(true)}><FiMenu /></div>
       </header>
 
@@ -192,7 +188,7 @@ export default function Navbar() {
         <NavLink to="/shop" className="m-nav-item"><FiPackage /></NavLink>
         <NavLink to="/cart" className="m-nav-item" style={{ position:'relative' }}>
           <FiShoppingCart />
-          {cartCount > 0 && <span className="cart-badge" style={{top:'5px', right:'5px'}}>{cartCount}</span>}
+          {cartCount > 0 && <span className="cart-badge" style={{ position: 'absolute', top:'-5px', right:'-10px'}}>{cartCount}</span>}
         </NavLink>
         <NavLink to="/orders" className="m-nav-item"><FiShoppingBag /></NavLink>
         <div className="m-nav-item" onClick={() => setMenuOpen(true)}><FiMenu /></div>

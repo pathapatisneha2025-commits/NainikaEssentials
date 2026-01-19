@@ -55,22 +55,28 @@ const LandingPage = () => {
                 </div>
               </div>
 
-              <div className="support-option">
-                <div className="option-icon phone"><FiPhone /></div>
-                <div className="option-text">
-                  <strong>Talk to us</strong>
-                  <span>Call customer care</span>
-                </div>
-              </div>
+            <div 
+    className="support-option" 
+    onClick={() => window.location.href = 'tel:+1234567890'}
+  >
+    <div className="option-icon phone"><FiPhone /></div>
+    <div className="option-text">
+      <strong>Talk to us</strong>
+      <span>Call customer care</span>
+    </div>
+  </div>
 
-              <div className="support-option">
-                <div className="option-icon mail"><FiMail /></div>
-                <div className="option-text">
-                  <strong>Write to us</strong>
-                  <span>Email support</span>
-                </div>
-              </div>
-            </div>
+             <div 
+    className="support-option" 
+    onClick={() => window.location.href = 'mailto:support@example.com'}
+  >
+    <div className="option-icon mail"><FiMail /></div>
+    <div className="option-text">
+      <strong>Write to us</strong>
+      <span>Email support</span>
+    </div>
+  </div>
+</div>
           </div>
         </div>
       )}

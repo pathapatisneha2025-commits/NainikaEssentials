@@ -2,29 +2,29 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 
 const categories = [
-  // Changed extensions to .jpg to match common web assets seen in your screenshots
-  { title: "Hoodie", image: "/hoodie.jpg", slug: "hoodie" },
-  { title: "Clothing", image: "/clothing.jpg", slug: "clothing" },
-  { title: "Shirts", image: "/shirts.jpg", slug: "shirts" },
-  { title: "Pants", image: "/pants.jpg", slug: "pants" },
+  { title: "Hoodie", image: "/hoodie.jpeg", slug: "hoodie" },
+  { title: "Clothing", image: "/clothing.jpeg", slug: "clothing" },
+  { title: "Shirts", image: "/shirts.jpeg", slug: "shirts" },
+  { title: "Pants", image: "/pants.jpeg", slug: "pants" },
 ];
 
 export default function ShopByCategory() {
   const navigate = useNavigate();
+
+  // Duplicate for infinite scroll
+  const scrollingCategories = [...categories, ...categories];
 
   return (
     <>
       <style>{`
         .shop-container {
           padding: 60px 5%;
+          background: #fff;
           font-family: 'Inter', sans-serif;
-          background: #fff; /* Ensures white background covers the hero banner background */
-          position: relative;
-          z-index: 5; /* Brings the categories above any fixed background images */
         }
 
         .header-section {
-          margin-bottom: 30px;
+          margin-bottom: 25px;
         }
 
         .header-section h2 {
@@ -36,23 +36,40 @@ export default function ShopByCategory() {
 
         .header-section p {
           color: #666;
-          font-size: 16px;
           margin-top: 6px;
         }
 
-        .categories-grid {
-          display: grid;
-          grid-template-columns: repeat(4, 1fr);
+        /* SCROLL WRAPPER */
+        .scroll-wrapper {
+          overflow: hidden;
+          width: 100%;
+        }
+
+        .scroll-track {
+          display: flex;
           gap: 20px;
+          width: max-content;
+          animation: scroll 30s linear infinite;
+        }
+
+        .scroll-wrapper:hover .scroll-track {
+          animation-play-state: paused;
+        }
+
+        @keyframes scroll {
+          from { transform: translateX(0); }
+          to { transform: translateX(-50%); }
         }
 
         .category-card {
-          position: relative;
-          overflow: hidden;
-          cursor: pointer;
-          border-radius: 8px; /* Slightly more rounded like your reference style */
+          width: 260px;
           aspect-ratio: 3 / 4;
-          background-color: #f5f5f5; /* Placeholder color while image loads */
+          border-radius: 10px;
+          overflow: hidden;
+          position: relative;
+          cursor: pointer;
+          flex-shrink: 0;
+          background: #f5f5f5;
         }
 
         .category-card img {
@@ -60,7 +77,6 @@ export default function ShopByCategory() {
           height: 100%;
           object-fit: cover;
           transition: transform 0.5s ease;
-          display: block;
         }
 
         .category-card:hover img {
@@ -72,9 +88,8 @@ export default function ShopByCategory() {
           bottom: 0;
           left: 0;
           width: 100%;
-          padding: 25px 20px;
-          /* Darker gradient for better text readability */
-          background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 100%);
+          padding: 22px 18px;
+          background: linear-gradient(to top, rgba(0,0,0,0.85), transparent);
           color: #fff;
         }
 
@@ -82,56 +97,67 @@ export default function ShopByCategory() {
           margin: 0;
           font-size: 20px;
           font-weight: 600;
-          letter-spacing: 0.5px;
         }
 
         .explore-link {
+          margin-top: 6px;
           display: block;
-          margin-top: 5px;
-          font-size: 13px;
-          text-transform: uppercase;
+          font-size: 12px;
           letter-spacing: 1px;
+          text-transform: uppercase;
           opacity: 0.9;
         }
 
-        @media (max-width: 1024px) {
-          .categories-grid { grid-template-columns: repeat(2, 1fr); }
-        }
+        /* MOBILE */
+        @media (max-width: 640px) {
+          .shop-container {
+            padding: 40px 16px;
+          }
 
-        @media (max-width: 600px) {
-          .categories-grid { grid-template-columns: 1fr; }
-          .shop-container { padding: 40px 20px; }
+          .category-card {
+            width: 220px;
+          }
+
+          .scroll-track {
+            animation-duration: 22s;
+          }
+
+          .header-section h2 {
+            font-size: 26px;
+          }
         }
       `}</style>
 
       <div className="shop-container">
-        <header className="header-section">
+        <div className="header-section">
           <h2>Shop by Category</h2>
           <p>Curated collections for every style</p>
-        </header>
+        </div>
 
-        <section className="categories-grid">
-          {categories.map((cat) => (
-            <div
-              key={cat.slug}
-              className="category-card"
-              onClick={() => navigate(`/category/${cat.slug}`)}
-            >
-              <img 
-                src={cat.image} 
-                alt={cat.title} 
-                onError={(e) => {
-                  // Fallback to .jpeg if .jpg fails
-                  if(e.target.src.includes('.jpg')) e.target.src = cat.image.replace('.jpg', '.jpeg');
-                }}
-              />
-              <div className="category-overlay">
-                <h3>{cat.title}</h3>
-                <span className="explore-link">Explore Collection →</span>
+        <div className="scroll-wrapper">
+          <div className="scroll-track">
+            {scrollingCategories.map((cat, index) => (
+              <div
+                key={index}
+                className="category-card"
+                onClick={() => navigate(`/category/${cat.slug}`)}
+              >
+                <img
+                  src={cat.image}
+                  alt={cat.title}
+                  onError={(e) => {
+                    if (e.target.src.includes(".jpg"))
+                      e.target.src = cat.image.replace(".jpg", ".jpeg");
+                  }}
+                />
+                <div className="category-overlay">
+                  <h3>{cat.title}</h3>
+                  <span className="explore-link">Explore Collection →</span>
+                </div>
               </div>
-            </div>
-          ))}
-        </section>
+            ))}
+          </div>
+        </div>
       </div>
     </>
   );

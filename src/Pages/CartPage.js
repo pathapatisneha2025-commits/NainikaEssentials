@@ -6,89 +6,128 @@ const API_BASE = "https://nainikaessentialsdatabas.onrender.com";
 
 export default function CartPage() {
   const [cart, setCart] = useState([]);
+  const [isGuest, setIsGuest] = useState(false);
   const navigate = useNavigate();
 
+  // Load cart (logged-in or guest)
   useEffect(() => {
-   const fetchCart = async () => {
-  let user = JSON.parse(localStorage.getItem("adminUser"));
-  if (!user || !user.user_id) {
-    localStorage.setItem("adminUser", JSON.stringify(user));
-  }
+    const fetchCart = async () => {
+      const user = JSON.parse(localStorage.getItem("adminUser"));
 
-  try {
-    const res = await fetch(`${API_BASE}/carts/${user.user_id}`);
-    const data = await res.json();
-    console.log("Raw cart data:", data);
-
-    // Remove nulls and transform
-    const items = (Array.isArray(data.items) ? data.items : [])
-      .filter(item => item) // remove null
-      .map(item => ({
-        id: item.product_id,
-        name: item.product_name,
-        image: item.product_images?.[0] || "/placeholder.png",
-        qty: item.quantity || 1,
-        price: item.price_at_addition || 0,
-        size: item.selected_size || "Free Size",
-        color: item.selected_color || "",
-        originalPrice: item.price_at_addition + 500 // or whatever logic
-      }));
-
-    setCart(items);
-
-  } catch (err) {
-    console.error("Fetch cart error:", err);
-    alert("Failed to load cart.");
-  }
-};
-
+      if (user && user.user_id) {
+        // Logged-in → fetch from backend
+        try {
+          const res = await fetch(`${API_BASE}/carts/${user.user_id}`);
+          const data = await res.json();
+          const items = (Array.isArray(data.items) ? data.items : [])
+            .filter(Boolean)
+            .map((item) => ({
+              id: item.product_id,
+              name: item.product_name,
+              image: item.product_images?.[0] || "/placeholder.png",
+              qty: item.quantity || 1,
+              price: item.price_at_addition || 0,
+              size: item.selected_size || "Free Size",
+              color: item.selected_color || "",
+              originalPrice: item.price_at_addition + 500
+            }));
+          setCart(items);
+          setIsGuest(false);
+        } catch (err) {
+          console.error("Fetch cart error:", err);
+          alert("Failed to load cart.");
+        }
+      } else {
+        // Guest → load from localStorage
+        const guestCart = JSON.parse(localStorage.getItem("cart")) || [];
+        setCart(
+          guestCart.map((item) => ({
+            id: item.product_id,
+            name: item.product_name,
+            image: item.product_images?.[0] || "/placeholder.png",
+            qty: item.quantity || 1,
+            price: item.price_at_addition || 0,
+            size: item.selected_size || "Free Size",
+            color: item.selected_color || "",
+            originalPrice: item.originalPrice || item.price_at_addition + 500
+          }))
+        );
+        setIsGuest(true);
+      }
+    };
 
     fetchCart();
     window.addEventListener("cartUpdated", fetchCart);
     return () => window.removeEventListener("cartUpdated", fetchCart);
-  }, [navigate]);
+  }, []);
 
-  const removeItem = async (id) => {
+  // Remove item
+  const removeItem = (id) => {
     const user = JSON.parse(localStorage.getItem("adminUser"));
-    try {
-      await fetch(`${API_BASE}/carts/remove`, {
+    if (user && user.user_id) {
+      fetch(`${API_BASE}/carts/remove`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user_id: user.user_id, product_id: id }),
-      });
-      setCart(cart.filter(item => item.id !== id));
-    } catch (err) {
-      console.error(err);
-      alert("Failed to remove item.");
+        body: JSON.stringify({ user_id: user.user_id, product_id: id })
+      })
+        .then(() => setCart(cart.filter(item => item.id !== id)))
+        .catch(err => alert("Failed to remove item."));
+    } else {
+      const newCart = cart.filter(item => item.id !== id);
+      setCart(newCart);
+      localStorage.setItem("cart", JSON.stringify(
+        newCart.map(i => ({
+          product_id: i.id,
+          product_name: i.name,
+          quantity: i.qty,
+          price_at_addition: i.price,
+          product_images: [i.image],
+          selected_color: i.color,
+          selected_size: i.size,
+          originalPrice: i.originalPrice
+        }))
+      ));
     }
   };
 
-  const updateQty = async (id, qty) => {
+  // Update quantity
+  const updateQty = (id, qty) => {
     if (qty < 1) return;
     const user = JSON.parse(localStorage.getItem("adminUser"));
-    try {
-      await fetch(`${API_BASE}/carts/update`, {
+    if (user && user.user_id) {
+      fetch(`${API_BASE}/carts/update`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ user_id: user.user_id, product_id: id, quantity: qty }),
-      });
-      setCart(cart.map(item => item.id === id ? { ...item, qty } : item));
-    } catch (err) {
-      console.error(err);
-      alert("Failed to update quantity.");
+      })
+        .then(() => setCart(cart.map(item => item.id === id ? { ...item, qty } : item)))
+        .catch(err => alert("Failed to update quantity."));
+    } else {
+      const newCart = cart.map(item => item.id === id ? { ...item, qty } : item);
+      setCart(newCart);
+      localStorage.setItem("cart", JSON.stringify(
+        newCart.map(i => ({
+          product_id: i.id,
+          product_name: i.name,
+          quantity: i.qty,
+          price_at_addition: i.price,
+          product_images: [i.image],
+          selected_color: i.color,
+          selected_size: i.size,
+          originalPrice: i.originalPrice
+        }))
+      ));
     }
   };
 
+  // Totals
   const validCart = cart.filter(item => item && typeof item.price === "number" && typeof item.qty === "number");
   const subtotal = validCart.reduce((acc, item) => acc + item.price * item.qty, 0);
-  const mrpTotal = validCart.reduce((acc, item) => acc + ((item.originalPrice || item.price + 500) * item.qty), 0);
+  const mrpTotal = validCart.reduce((acc, item) => acc + (item.originalPrice || item.price + 500) * item.qty, 0);
   const discount = mrpTotal - subtotal;
 
   const handleCheckout = () => {
-    if (!validCart.length) {
-      alert("Your cart is empty!");
-      return;
-    }
+    if (!validCart.length) return alert("Your cart is empty!");
     navigate("/checkout");
   };
 
@@ -96,7 +135,9 @@ export default function CartPage() {
     return (
       <div style={{ padding: "100px 5%", textAlign: "center", fontFamily: "inherit" }}>
         <ShoppingCart size={48} color="#ccc" style={{ marginBottom: "20px" }} />
-        <p style={{ fontSize: "18px", color: "#666" }}>Your cart is empty</p>
+        <p style={{ fontSize: "18px", color: "#666" }}>
+          {isGuest ? "Your cart is empty" : "Please login to view your cart"}
+        </p>
       </div>
     );
   }
@@ -104,9 +145,8 @@ export default function CartPage() {
   return (
     <div style={{ padding: "40px 5%", fontFamily: "'Segoe UI', Roboto, Helvetica, Arial, sans-serif", backgroundColor: "#fff", minHeight: "100vh" }}>
       <h1 style={{ fontSize: "24px", fontWeight: "600", marginBottom: "30px", color: "#1a1a1a" }}>Shopping Cart</h1>
-
       <div style={{ display: "grid", gridTemplateColumns: "1.8fr 1fr", gap: "30px", alignItems: "start" }}>
-        {/* Left Side: Cart Items */}
+        {/* Left: Items */}
         <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
           {validCart.map(item => (
             <div key={item.id} style={{ display: "flex", gap: "20px", padding: "15px", border: "1px solid #f0f0f0", borderRadius: "12px" }}>
@@ -116,10 +156,10 @@ export default function CartPage() {
                   <h2 style={{ fontSize: "16px", fontWeight: "500", margin: 0, color: "#333" }}>{item.name}</h2>
                   <span style={{ fontSize: "18px", fontWeight: "600" }}>₹{item.price}</span>
                 </div>
-                <p style={{ fontSize: "13px", color: "#999", margin: "5px 0" }}>Size Free Size</p>
+                <p style={{ fontSize: "13px", color: "#999", margin: "5px 0" }}>Size {item.size}</p>
                 <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "15px" }}>
                   <span style={{ fontSize: "16px", fontWeight: "600" }}>₹{item.price}</span>
-                  <span style={{ fontSize: "13px", color: "#ccc", textDecoration: "line-through" }}>₹{item.originalPrice || item.price + 500}</span>
+                  <span style={{ fontSize: "13px", color: "#ccc", textDecoration: "line-through" }}>₹{item.originalPrice}</span>
                 </div>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                   <div style={{ display: "flex", border: "1px solid #e0e0e0", borderRadius: "6px", alignItems: "center" }}>
@@ -136,7 +176,7 @@ export default function CartPage() {
           ))}
         </div>
 
-        {/* Right Side: Price Summary */}
+        {/* Right: Summary */}
         <div style={{ border: "1px solid #f8f8fb", borderRadius: "16px", padding: "25px", backgroundColor: "#fff", boxShadow: "0 2px 10px rgba(0,0,0,0.02)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "20px" }}>
             <ShoppingCart size={20} color="#5d5ad1" />

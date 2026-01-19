@@ -43,48 +43,58 @@ export default function ShopProductDetails() {
 
   if (!product) return <p style={{ padding: 100, textAlign: "center" }}>Product not found</p>;
 
-  const handleAddToCart = async () => {
-    try {
-      const user = JSON.parse(localStorage.getItem("adminUser"));
-      if (!user?.user_id) {
-        alert("Please log in to add items to cart.");
-        return;
-      }
-
-      if (qty > product.stock) {
-        alert(`Only ${product.stock} items in stock`);
-        return;
-      }
-
-      const productObj = {
-        product_id: product.id,
-        product_name: product.name,
-        selected_color: product.colors[0] || "Default",
-        selected_size: "Free Size",
-        quantity: qty,
-        price_at_addition: product.price,
-        product_images: [product.img]
-      };
-
-      const response = await fetch("https://nainikaessentialsdatabas.onrender.com/carts/add", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user_id: user.user_id, product: productObj })
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        alert(`${product.name} added to cart!`);
-      } else {
-        alert(data.error || "Failed to add to cart");
-      }
-
-    } catch (err) {
-      console.error("Add to Cart Error:", err);
-      alert("Something went wrong, please try again.");
-    }
+  const handleAddToCart = () => {
+  const user = JSON.parse(localStorage.getItem("adminUser"));
+  const productObj = {
+    product_id: product.id,
+    product_name: product.name,
+    selected_color: product.colors[0] || "Default",
+    selected_size: "Free Size",
+    quantity: qty,
+    price_at_addition: product.price,
+    product_images: [product.img],
   };
+
+  if (qty > product.stock) {
+    alert(`Only ${product.stock} items in stock`);
+    return;
+  }
+
+  if (user && user.user_id) {
+    // Logged-in: send to backend
+    fetch("https://nainikaessentialsdatabas.onrender.com/carts/add", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ user_id: user.user_id, product: productObj }),
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.error) {
+          alert(data.error);
+        } else {
+          alert(`${product.name} added to cart!`);
+          window.dispatchEvent(new Event("cartUpdated"));
+        }
+      })
+      .catch(err => alert("Failed to add to cart."));
+  } else {
+    // Guest: store in localStorage
+    let guestCart = JSON.parse(localStorage.getItem("cart")) || [];
+
+    // Check if product already exists
+    const index = guestCart.findIndex(item => item.product_id === product.id);
+    if (index > -1) {
+      guestCart[index].quantity += qty;
+    } else {
+      guestCart.push(productObj);
+    }
+
+    localStorage.setItem("cart", JSON.stringify(guestCart));
+    alert(`${product.name} added to cart!`);
+    window.dispatchEvent(new Event("cartUpdated"));
+  }
+};
+
 
   const incrementQty = () => { if (qty < product.stock) setQty(qty + 1); };
   const decrementQty = () => { if (qty > 1) setQty(qty - 1); };

@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { ShieldCheck } from "lucide-react";
 
+const BASE_URL = "https://nainikaessentialsdatabas.onrender.com";
+
 export default function CheckoutPage() {
   const [cart, setCart] = useState([]);
   const [paymentMethod, setPaymentMethod] = useState("cod");
@@ -8,10 +10,10 @@ export default function CheckoutPage() {
   const [loading, setLoading] = useState(true);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
-  // Coupon state
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState(null);
   const [allCoupons, setAllCoupons] = useState([]);
+  const [codCharge, setCodCharge] = useState(0); // dynamic COD charge
 
   const user = JSON.parse(localStorage.getItem("adminUser"));
   let userId = user?.user_id || localStorage.getItem("guest_id");
@@ -22,7 +24,7 @@ export default function CheckoutPage() {
 
   // Fetch cart
   useEffect(() => {
-    fetch(`https://nainikaessentialsdatabas.onrender.com/carts/${userId}`)
+    fetch(`${BASE_URL}/carts/${userId}`)
       .then(res => res.json())
       .then(data => { setCart(data.items || []); setLoading(false); })
       .catch(() => setLoading(false));
@@ -30,9 +32,19 @@ export default function CheckoutPage() {
 
   // Fetch coupons
   useEffect(() => {
-    fetch("https://nainikaessentialsdatabas.onrender.com/coupons/")
+    fetch(`${BASE_URL}/coupons/`)
       .then(res => res.json())
       .then(data => setAllCoupons(data))
+      .catch(console.error);
+  }, []);
+
+  // Fetch COD extra charge from admin panel
+  useEffect(() => {
+    fetch(`${BASE_URL}/cod/all`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.length > 0) setCodCharge(Number(data[0].cod_charge));
+      })
       .catch(console.error);
   }, []);
 
@@ -69,41 +81,39 @@ export default function CheckoutPage() {
     });
   }
 
-  const delivery = 0;
+  // Delivery / COD charge
+  const delivery = paymentMethod === "cod" ? codCharge : 0;
   const totalAmount = Math.max(0, subtotal + delivery - couponDiscount);
 
-  // --- Apply coupon ---
- const applyCoupon = () => {
-  if (!couponCode.trim()) return alert("Enter a coupon code");
+  const applyCoupon = () => {
+    if (!couponCode.trim()) return alert("Enter a coupon code");
 
-  const coupon = allCoupons.find(c => c.code.toUpperCase() === couponCode.trim().toUpperCase());
-  if (!coupon) return alert("Invalid coupon code");
+    const coupon = allCoupons.find(c => c.code.toUpperCase() === couponCode.trim().toUpperCase());
+    if (!coupon) return alert("Invalid coupon code");
 
-  let discountAmount = 0;
-  cart.forEach(item => {
-    const itemId = Number(item.product_id); // ensure number
-    const itemCategory = item.category?.toLowerCase().trim();
+    let discountAmount = 0;
+    cart.forEach(item => {
+      const itemId = Number(item.product_id);
+      const itemCategory = item.category?.toLowerCase().trim();
 
-    const isProductApplicable = coupon.applicable_products.map(Number).includes(itemId);
-    const isCategoryApplicable = coupon.applicable_categories.map(c => c.toLowerCase().trim()).includes(itemCategory);
+      const isProductApplicable = coupon.applicable_products.map(Number).includes(itemId);
+      const isCategoryApplicable = coupon.applicable_categories.map(c => c.toLowerCase().trim()).includes(itemCategory);
 
-    if (isProductApplicable || isCategoryApplicable) {
-      if (coupon.discount_type === "percentage") {
-        discountAmount += (item.price_at_addition || 0) * item.quantity * (parseFloat(coupon.discount_value)/100);
-      } else {
-        discountAmount += parseFloat(coupon.discount_value) * item.quantity;
+      if (isProductApplicable || isCategoryApplicable) {
+        if (coupon.discount_type === "percentage") {
+          discountAmount += (item.price_at_addition || 0) * item.quantity * (parseFloat(coupon.discount_value)/100);
+        } else {
+          discountAmount += parseFloat(coupon.discount_value) * item.quantity;
+        }
       }
-    }
-  });
+    });
 
-  if (discountAmount === 0) return alert("Coupon does not apply to any product in cart");
+    if (discountAmount === 0) return alert("Coupon does not apply to any product in cart");
 
-  setAppliedCoupon(coupon);
-  alert(`Coupon applied! You saved ₹${discountAmount.toFixed(2)}`);
-};
+    setAppliedCoupon(coupon);
+    alert(`Coupon applied! You saved ₹${discountAmount.toFixed(2)}`);
+  };
 
-
-  // --- Place order ---
   const placeOrder = async () => {
     if (!address.name || !address.phone || !address.pincode) {
       alert("Please fill delivery address");
@@ -124,10 +134,11 @@ export default function CheckoutPage() {
       payment_method: paymentMethod,
       applied_coupon: appliedCoupon?.code || null,
       coupon_discount: couponDiscount.toFixed(2),
+      cod_extra: delivery.toFixed(2)
     };
 
     try {
-      const res = await fetch("https://nainikaessentialsdatabas.onrender.com/orders/add", {
+      const res = await fetch(`${BASE_URL}/orders/add`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -144,35 +155,13 @@ export default function CheckoutPage() {
     }
   };
 
-  // --- Responsive sizes ---
-  const size = isMobile ? {
-    padding: "8px",
-    inputPadding: "8px",
-    fontSmall: "12px",
-    fontMedium: "14px",
-    fontLarge: "16px",
-    gap: "8px",
-    borderRadius: "6px",
-    imageSize: "40px",
-    buttonPadding: "10px",
-    cardPadding: "15px"
-  } : {
-    padding: "25px",
-    inputPadding: "12px",
-    fontSmall: "14px",
-    fontMedium: "16px",
-    fontLarge: "18px",
-    gap: "12px",
-    borderRadius: "12px",
-    imageSize: "50px",
-    buttonPadding: "14px",
-    cardPadding: "25px"
-  };
+  const size = isMobile ? { padding: 8, inputPadding: 8, fontSmall: 12, fontMedium: 14, fontLarge: 16, gap: 8, borderRadius: 6, imageSize: 40, buttonPadding: 10, cardPadding: 15 }
+    : { padding: 25, inputPadding: 12, fontSmall: 14, fontMedium: 16, fontLarge: 18, gap: 12, borderRadius: 12, imageSize: 50, buttonPadding: 14, cardPadding: 25 };
 
   return (
     <div style={{ padding: size.padding, background: "#f9fafb", minHeight: "100vh", fontFamily: "Segoe UI, sans-serif" }}>
-      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1.7fr 1fr", gap: size.gap, maxWidth: "1200px", margin: "auto" }}>
-        
+      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1.7fr 1fr", gap: size.gap, maxWidth: 1200, margin: "auto" }}>
+
         {/* Address + Payment */}
         <div>
           <div style={{ background: "#fff", padding: size.cardPadding, borderRadius: size.borderRadius, border: "1px solid #eee", marginBottom: size.gap }}>
@@ -190,29 +179,41 @@ export default function CheckoutPage() {
             </div>
           </div>
 
+          {/* Payment Method */}
           <div style={{ background: "#fff", padding: size.cardPadding, borderRadius: size.borderRadius, border: "1px solid #eee", marginBottom: size.gap }}>
             <h2 style={{ fontSize: size.fontLarge }}>Payment Method</h2>
-            {["cod","online"].map(method => (
-              <label key={method} style={{
-                display: "flex",
-                gap: size.gap,
-                padding: size.padding,
-                borderRadius: size.borderRadius,
-                border: paymentMethod===method ? `2px solid #4f46e5` : "1px solid #ddd",
-                background: paymentMethod===method ? "#f5f7ff" : "#fff",
-                cursor: "pointer",
-                fontSize: size.fontSmall,
-                marginBottom: size.gap
-              }}>
-                <input type="radio" checked={paymentMethod===method} onChange={()=>setPaymentMethod(method)} />
-                {method==="cod" ? "Cash on Delivery" : "Online Payment"}
-              </label>
+
+            {["online","cod"].map(method => (
+              <div key={method} style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                <label style={{
+                  display: "flex",
+                  gap: size.gap,
+                  padding: size.padding,
+                  borderRadius: size.borderRadius,
+                  border: paymentMethod===method ? `2px solid #4f46e5` : "1px solid #ddd",
+                  background: paymentMethod===method ? "#f5f7ff" : "#fff",
+                  cursor: "pointer",
+                  fontSize: size.fontSmall,
+                  marginBottom: size.gap,
+                  alignItems: "center"
+                }}>
+                  <input type="radio" checked={paymentMethod===method} onChange={()=>setPaymentMethod(method)} />
+                  {method==="cod" ? "Cash on Delivery" : "Online Payment"}
+                </label>
+
+                {/* Show COD extra charge only when COD is selected */}
+                {method === "cod" && paymentMethod === "cod" && codCharge > 0 && (
+                  <span style={{ color: "red", fontWeight: "600", marginLeft: size.inputPadding }}>
+                    COD Extra Charge*: ₹{codCharge}
+                  </span>
+                )}
+              </div>
             ))}
           </div>
         </div>
 
         {/* Order Summary */}
-        <div style={{ position: isMobile ? "static" : "sticky", top: isMobile ? "auto" : "20px" }}>
+        <div style={{ position: isMobile ? "static" : "sticky", top: isMobile ? "auto" : 20 }}>
           <div style={{ background: "#fff", padding: size.cardPadding, borderRadius: size.borderRadius, border: "1px solid #eee" }}>
             <h3 style={{ fontSize: size.fontMedium }}>Order Summary</h3>
 
@@ -258,10 +259,13 @@ export default function CheckoutPage() {
               </div>
             )}
 
-            <div style={{ display:"flex", justifyContent:"space-between", margin:"6px 0", fontSize: size.fontSmall }}>
-              <span>Delivery</span>
-              <span>₹{delivery}</span>
-            </div>
+            {/* COD extra in summary */}
+            {paymentMethod === "cod" && codCharge > 0 && (
+              <div style={{ display:"flex", justifyContent:"space-between", margin:"6px 0", fontSize: size.fontSmall }}>
+                <span style={{ color: "red", fontWeight: "600" }}>COD Extra Charge*</span>
+                <span>₹{delivery.toFixed(2)}</span>
+              </div>
+            )}
 
             <div style={{ display:"flex", justifyContent:"space-between", fontWeight:"700", fontSize: size.fontMedium, margin:"12px 0" }}>
               <span>Total Amount</span>

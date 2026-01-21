@@ -387,16 +387,31 @@ useEffect(() => {
       </header>
 
       {/* Mobile Bottom Nav */}
-      <nav className="mobile-bottom-nav">
-        <NavLink to="/" className="m-nav-item"><FiHome /></NavLink>
-        <NavLink to="/shop" className="m-nav-item"><FiPackage /></NavLink>
-       <div className="icon-link" style={{ position: "relative" }} onClick={handleCartClick}>
-            <FiShoppingCart />
-            {cartCount > 0 && <span className="cart-badge">{cartCount}</span>}
-          </div>
-        <div className="m-nav-item" onClick={handleOrdersClick}><FiShoppingBag /></div>
-        {/* <div className="m-nav-item" onClick={() => setMenuOpen(true)}><FiMenu /></div> */}
-      </nav>
+     {/* Mobile Bottom Nav */}
+<nav className="mobile-bottom-nav">
+  <NavLink to="/" className="m-nav-item">
+    <FiHome />
+  </NavLink>
+
+  <NavLink to="/shop" className="m-nav-item">
+    <FiPackage />
+  </NavLink>
+
+  <div className="icon-link" style={{ position: "relative" }} onClick={handleCartClick}>
+    <FiShoppingCart />
+    {cartCount > 0 && <span className="cart-badge">{cartCount}</span>}
+  </div>
+
+  <div className="m-nav-item" onClick={handleOrdersClick}>
+    <FiShoppingBag />
+  </div>
+
+  {/* Uncomment if you want a menu button */}
+  {/* <div className="m-nav-item" onClick={() => setMenuOpen(true)}>
+        <FiMenu />
+      </div> */}
+</nav>
+
 
       {/* Offers Popup */}
       {showPopup && location.pathname === "/" && (

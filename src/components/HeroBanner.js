@@ -75,20 +75,20 @@ const FeaturedSection = () => {
         `}
       </style>
 
-      {/* Hero Banner Area */}
       <section className="hero-container" style={styles.heroContainer}>
-        <div style={styles.overlay}></div>
-        <div style={styles.contentGrid}>
-          <div className="hero-content" style={styles.leftSide}>
-            <span style={styles.label}>FASHION PRESENTATION</span>
-            <h1 style={styles.mainTitle}>FASHION</h1>
-            <p style={styles.url}>WWW.ELANCOTTS.COM</p>
-          </div>
-          <div style={styles.rightSide} className="brand-side-text">
-            <span style={styles.brandSide}>ELAN COTTS</span>
-          </div>
-        </div>
-      </section>
+  <div style={styles.overlay}></div>
+  <div style={styles.contentGrid}>
+    <div className="hero-content" style={styles.leftSide}>
+      <span style={styles.label}>FASHION PRESENTATION</span>
+      <h1 style={styles.mainTitle}>FASHION</h1>
+      <p style={styles.url}>WWW.ELANCOTTS.COM</p>
+    </div>
+    <div style={styles.rightSide} className="brand-side-text">
+      <span style={styles.brandSide}>NainikaEssentials</span>
+    </div>
+  </div>
+</section>
+
 
       {/* Heading matching Screenshot */}
       <div className="header-info" style={styles.footerText}>
@@ -131,12 +131,25 @@ const FeaturedSection = () => {
 
 const styles = {
   pageWrapper: { width: '100%', backgroundColor: '#fff', fontFamily: 'Arial, sans-serif' },
-  heroContainer: {
-    position: 'relative', width: '100%', height: '400px',
-    backgroundImage: `url('/featured.jpeg')`,
-    backgroundSize: 'cover', backgroundPosition: 'center 20%',
-    display: 'flex', alignItems: 'center', overflow: 'hidden', backgroundColor: '#000'
-  },
+  // Inside your styles object, update heroContainer:
+heroContainer: {
+  position: 'relative',
+  width: '100%',
+  maxWidth: '1200px',         // Limit maximum width
+  margin: '0 auto',           // Center on page
+  height: '400px',
+  border: '2px solid #ddd',   // Add border
+  borderRadius: '10px',       // Rounded corners
+  overflow: 'hidden',         // Prevent overflow
+  backgroundImage: `url('/featured.jpeg')`,
+  backgroundSize: 'cover',
+  backgroundPosition: 'center 20%',
+  display: 'flex',
+  alignItems: 'center',
+  backgroundColor: '#000',
+  boxShadow: '0 4px 15px rgba(0,0,0,0.1)' // optional shadow for depth
+},
+
   overlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.3)' },
   contentGrid: { position: 'relative', zIndex: 2, width: '100%', display: 'flex', justifyContent: 'space-between', padding: '0 5%', color: '#fff' },
   mainTitle: { fontSize: '6rem', margin: '0', fontWeight: '400', letterSpacing: '8px', fontFamily: '"Playfair Display", serif' },

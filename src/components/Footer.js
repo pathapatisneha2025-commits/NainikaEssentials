@@ -156,11 +156,11 @@ const Footer = () => {
         <div className="footer-column">
           <h3>Customer Support</h3>
           <ul className="footer-links">
-            <li><a href="/privacy">Privacy Policy</a></li>
-            <li><a href="/terms">Terms & Conditions</a></li>
-            <li><a href="/returns">Returns & Refunds</a></li>
-            <li><a href="/shipping">Shipping Information</a></li>
-            <li><a href="/faq">FAQs</a></li>
+            <li><Link to="/privacypolicy">Privacy Policy</Link></li>
+            <li><Link to="/termsconditions">Terms & Conditions</Link></li>
+            <li><Link to="/refund">Returns & Refunds</Link></li>
+            <li><Link to="/shippolicy">Shipping Information</Link></li>
+            <li><Link to="/faq">FAQs</Link></li>
           </ul>
         </div>
 

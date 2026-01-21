@@ -385,9 +385,7 @@ useEffect(() => {
         </div>
         <div className="hamburger" onClick={() => setMenuOpen(true)}><FiMenu /></div>
       </header>
-
-      {/* Mobile Bottom Nav */}
-     {/* Mobile Bottom Nav */}
+{/* Mobile Bottom Nav */}
 <nav className="mobile-bottom-nav">
   <NavLink to="/" className="m-nav-item">
     <FiHome />
@@ -397,7 +395,7 @@ useEffect(() => {
     <FiPackage />
   </NavLink>
 
-  <div className="icon-link" style={{ position: "relative" }} onClick={handleCartClick}>
+  <div className="m-nav-item icon-link" style={{ position: "relative" }} onClick={handleCartClick}>
     <FiShoppingCart />
     {cartCount > 0 && <span className="cart-badge">{cartCount}</span>}
   </div>
@@ -411,6 +409,7 @@ useEffect(() => {
         <FiMenu />
       </div> */}
 </nav>
+
 
 
       {/* Offers Popup */}

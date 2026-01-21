@@ -12,6 +12,7 @@ export default function ShopProductDetails() {
   const [mainImage, setMainImage] = useState("");
   const [qty, setQty] = useState(1);
   const [width, setWidth] = useState(window.innerWidth);
+const [showDescription, setShowDescription] = useState(false);
 
   // New states for the UI sections in screenshots
   const [showDetails, setShowDetails] = useState(true);
@@ -210,13 +211,41 @@ export default function ShopProductDetails() {
             )}
           </div>
 
-          {/* --- DESCRIPTION ACCORDION --- */}
-          <div style={{ borderTop: '1px solid #eee', borderBottom: '1px solid #eee' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '15px 0', cursor: 'pointer', alignItems: 'center' }}>
-              <span style={{ fontWeight: '600' }}>Description</span>
-              <ChevronDown size={20} />
-            </div>
-          </div>
+        {/* --- DESCRIPTION ACCORDION --- */}
+<div style={{ borderTop: '1px solid #eee', borderBottom: '1px solid #eee' }}>
+  <div
+    onClick={() => setShowDescription(!showDescription)}
+    style={{
+      display: 'flex',
+      justifyContent: 'space-between',
+      padding: '15px 0',
+      cursor: 'pointer',
+      alignItems: 'center'
+    }}
+  >
+    <span style={{ fontWeight: '600' }}>Description</span>
+    {showDescription ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+  </div>
+
+  {showDescription && (
+    <div style={{ padding: '10px 0', fontSize: '14px', color: '#666', lineHeight: '1.6' }}>
+      <p>
+        This is a high-quality fleece sweater, perfect for casual wear. Soft, comfortable, and stylish, 
+        available in multiple colors and sizes.
+      </p>
+      <p>
+        Material: 100% Cotton<br />
+        Care Instructions: Machine wash cold, tumble dry low
+      </p>
+
+      <div style={{ display: 'flex', gap: 20, marginTop: 15, fontSize: '12px', color: '#666' }}>
+        <span>7-day returns</span>
+        <span>COD available</span>
+      </div>
+    </div>
+  )}
+</div>
+
           
           <div style={{ display: 'flex', gap: 20, marginTop: 15, fontSize: '12px', color: '#666' }}>
             <span>7-day returns</span>

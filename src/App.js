@@ -26,10 +26,16 @@ import CheckoutPage from "./Pages/CheckoutPage";
 import ShopProductDetails from "./Pages/ShopProductdetailed";
 import MyOrderDetails from "./Pages/MyOrdersPage";
 import ProfilePage from "./Pages/ProfilePage";
+import PrivacyPolicy from "./Pages/PrivacyPolicy";
+import TermsAndConditions from "./Pages/TermsCondition";
+import ReturnsRefundsPolicy from "./Pages/ReturnPolicy";
+import ShippingInformation from "./Pages/Shipping";
+import ScrollToTop from "./components/ScrolllTop";
 
 function App() {
   return (
     <Router>
+      <ScrollToTop/>
       {/* Navbar visible on all pages */}
       <Navbar />
 
@@ -70,7 +76,12 @@ function App() {
 
                 <Route path="/contact" element={<ContactPage />} />
                 <Route path="/register" element={<RegisterPage />} />
-                <Route path="/login" element={<LoginPage />} />
+                <Route path="/faq" element={<FAQ />} />
+                <Route path="/privacypolicy" element={<PrivacyPolicy/>} />
+                <Route path="/termsconditions" element={<TermsAndConditions/>} />
+                <Route path="/refund" element={<ReturnsRefundsPolicy/>} />
+                <Route path="/shippolicy" element={<ShippingInformation/>} />
+                <Route path="/faq" element={<FAQ/>} />
 
        
       </Routes>

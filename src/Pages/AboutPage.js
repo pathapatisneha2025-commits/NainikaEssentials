@@ -1,23 +1,72 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
 const AboutPage = () => {
-  // SVG Icon Components for better performance and no extra dependencies
+
+  /* ================= LIVE COUNTERS ================= */
+  const [stats, setStats] = useState({
+    customers: 0,
+    products: 0,
+    rating: 0,
+    repeat: 0,
+  });
+
+  useEffect(() => {
+    const targets = {
+      customers: 10000,
+      products: 250,
+      rating: 5,
+      repeat: 99,
+    };
+
+    const duration = 1200;
+    const steps = 60;
+    const interval = duration / steps;
+
+    let current = { customers: 0, products: 0, rating: 0, repeat: 0 };
+
+    const timer = setInterval(() => {
+      current.customers += targets.customers / steps;
+      current.products += targets.products / steps;
+      current.rating += targets.rating / steps;
+      current.repeat += targets.repeat / steps;
+
+      setStats({
+        customers: Math.min(Math.round(current.customers), targets.customers),
+        products: Math.min(Math.round(current.products), targets.products),
+        rating: Math.min(Math.round(current.rating), targets.rating),
+        repeat: Math.min(Math.round(current.repeat), targets.repeat),
+      });
+
+      if (
+        current.customers >= targets.customers &&
+        current.products >= targets.products &&
+        current.rating >= targets.rating &&
+        current.repeat >= targets.repeat
+      ) {
+        clearInterval(timer);
+      }
+    }, interval);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  /* ================= ICONS ================= */
   const Icons = {
     Shirt: () => (
-      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.38 3.46L16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.62 1.96v4.42a2 2 0 0 0 .39 1.16l2 3a2 2 0 0 0 1.61.84H8v7a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-7h.39a2 2 0 0 0 1.61-.84l2-3a2 2 0 0 0 .39-1.16V5.42a2 2 0 0 0-1.62-1.96z"/></svg>
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20.38 3.46L16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.62 1.96v4.42a2 2 0 0 0 .39 1.16l2 3a2 2 0 0 0 1.61.84H8v7a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-7h.39a2 2 0 0 0 1.61-.84l2-3a2 2 0 0 0 .39-1.16V5.42a2 2 0 0 0-1.62-1.96z"/></svg>
     ),
     Users: () => (
-      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="9" cy="7" r="4"/><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/></svg>
     ),
     Truck: () => (
-      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16"/></svg>
     ),
     Shield: () => (
-      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
     ),
-    Star: () => (
-      <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-    )
+    Star: () => 
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15 8 22 9 17 14 18 21 12 18 6 21 7 14 2 9 9 8"/></svg>
+    
   };
 
   return (
@@ -129,14 +178,26 @@ const AboutPage = () => {
             </div>
           </section>
 
-          {/* STATS */}
+          
+          {/* STATS WITH LIVE COUNT */}
           <section className="stats">
-            <div className="stat-item"><h2>10K+</h2><p>Happy Customers</p></div>
-            <div className="stat-item"><h2>250+</h2><p>Products Designed</p></div>
-            <div className="stat-item"><h2>5★</h2><p>Customer Rating</p></div>
-            <div className="stat-item"><h2>99%</h2><p>Repeat Buyers</p></div>
+            <div className="stat-item">
+              <h2>{stats.customers >= 1000 ? `${Math.floor(stats.customers / 1000)}K+` : stats.customers}</h2>
+              <p>Happy Customers</p>
+            </div>
+            <div className="stat-item">
+              <h2>{stats.products}+</h2>
+              <p>Products Designed</p>
+            </div>
+            <div className="stat-item">
+              <h2>{stats.rating}★</h2>
+              <p>Customer Rating</p>
+            </div>
+            <div className="stat-item">
+              <h2>{stats.repeat}%</h2>
+              <p>Repeat Buyers</p>
+            </div>
           </section>
-
           {/* STORY */}
           <section className="story">
             <div className="story-content">

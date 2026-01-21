@@ -56,22 +56,14 @@ export default function MyOrders() {
           font-weight: 500;
         }
 
-        /* FORCE HORIZONTAL TABLE ON MOBILE */
+        /* The Table Layout for Mobile */
         .table-wrapper {
-          overflow-x: auto; /* Allows side-scrolling */
-          -webkit-overflow-scrolling: touch;
+          overflow-x: auto;
           border: 1px solid #f1f5f9;
           border-radius: 12px;
           background: #fff;
-          margin-bottom: 20px;
         }
-
-        table { 
-          width: 100%; 
-          border-collapse: collapse; 
-          min-width: 700px; /* Forces the table to stay horizontal and not stack */
-        }
-
+        table { width: 100%; border-collapse: collapse; min-width: 600px; }
         th {
           background-color: #f8fafc;
           text-align: left;
@@ -80,27 +72,23 @@ export default function MyOrders() {
           font-weight: 500;
           color: #64748b;
           border-bottom: 1px solid #f1f5f9;
-          white-space: nowrap;
         }
-
         td {
           padding: 16px;
           font-size: 13px;
           color: #334155;
           border-bottom: 1px solid #f1f5f9;
           vertical-align: middle;
-          white-space: nowrap; /* Prevents text from wrapping/stacking */
         }
         
         .order-id-cell { font-weight: 500; color: #1e293b; }
         .order-id-cell span { display: block; font-size: 11px; color: #94a3b8; font-weight: 400; margin-top: 2px; }
 
         .prod-img {
-          width: 45px;
-          height: 55px;
+          width: 40px;
+          height: 50px;
           object-fit: cover;
           border-radius: 6px;
-          background: #f1f5f9;
         }
 
         .status-badge {
@@ -113,6 +101,7 @@ export default function MyOrders() {
           display: inline-block;
         }
         
+        /* Fixed bottom nav placeholder style */
         .bottom-spacer { height: 80px; }
       `}</style>
 
@@ -132,7 +121,7 @@ export default function MyOrders() {
             <tr>
               <th>Order ID</th>
               <th>Date</th>
-              {/* <th>Products</th> */}
+              <th>Products</th>
               <th>Items</th>
               <th>Total</th>
               <th>Payment</th>
@@ -141,32 +130,24 @@ export default function MyOrders() {
           </thead>
           <tbody>
             {orders.map((order) => (
-              <tr key={order.order_id} onClick={() => navigate(`/orders/${order.order_id}`)} style={{cursor: 'pointer'}}>
+              <tr key={order.order_id} onClick={() => navigate(`/orders/${order.order_id}`)}>
                 <td className="order-id-cell">
                   #{(order.order_id).toString().slice(-6)}
                   <span>{order.payment_method?.toUpperCase()}</span>
                 </td>
                 <td>{new Date(order.created_at).toLocaleDateString('en-GB')}</td>
-                {/* <td>
+                <td>
                   <img 
                     src={order.items?.[0]?.image_url || "/placeholder.png"} 
                     alt="product" 
                     className="prod-img"
                   />
-                </td> */}
-                <td>
-                  <span style={{background: '#f1f5f9', padding: '6px 10px', borderRadius: '50%', fontSize: '12px'}}>
-                    {order.items?.length || 1}
-                  </span>
                 </td>
-                <td style={{fontWeight: '700', color: '#1e293b'}}>₹{order.total_amount}</td>
+                <td><span style={{background: '#f1f5f9', padding: '4px 8px', borderRadius: '50%'}}>{order.items?.length || 1}</span></td>
+                <td style={{fontWeight: '600'}}>₹{order.total_amount}</td>
                 <td>
-                  <div style={{fontSize: '11px', fontWeight: '700', color: '#475569'}}>
-                    {order.order_status?.toUpperCase()}
-                  </div>
-                  <div style={{fontSize: '10px', color: '#94a3b8'}}>
-                    {order.payment_method?.toUpperCase()}
-                  </div>
+                  <div style={{fontSize: '11px', fontWeight: '600'}}>{order.order_status?.toUpperCase()}</div>
+                  <div style={{fontSize: '10px', color: '#94a3b8'}}>{order.payment_method?.toUpperCase()}</div>
                 </td>
                 <td>
                   <span className="status-badge">PLACED</span>

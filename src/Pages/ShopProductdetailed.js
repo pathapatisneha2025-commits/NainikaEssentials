@@ -1,172 +1,291 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react"; 
 import { useParams } from "react-router-dom";
-import { Share2, MessageCircle, User } from "lucide-react";
-
-// Product data
-const PRODUCTS = [
-  { id: 1, name: "Elegant Onion Pink Silk Saree with Geometric Weave &...", discount: "40%", img: "https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=400", rating: 4.0, reviews: 5, slug: "elegant-onion-pink-silk-saree", price: 2499, originalPrice: 4199, stock: 10, colors: ["Pink"], description: "Elegant silk saree with geometric patterns." },
-  { id: 2, name: "Radiant Gold Tissue Silk Saree with Antique Zari Work", discount: "52%", img: "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=400", rating: 3.5, reviews: 2, slug: "radiant-gold-tissue-silk-saree", price: 3299, originalPrice: 6899, stock: 5, colors: ["Gold"], description: "Traditional tissue silk saree with zari work." },
-  { id: 3, name: "Midnight Noir Sequinned Georgette Saree", discount: "50%", img: "https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?w=400", rating: 4.5, reviews: 10, slug: "midnight-noir-sequinned-georgette-saree", price: 3299, originalPrice: 6599, stock: 7, colors: ["Black"], description: "Sequinned georgette saree for evening wear." },
-  { id: 4, name: "Elegant Handloom Silk Saree with Zari Border", discount: "50%", img: "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=400", rating: 4.2, reviews: 8, slug: "elegant-handloom-silk-saree", price: 1899, originalPrice: 3799, stock: 12, colors: ["Cream"], description: "Handloom silk saree with elegant zari border." },
-];
-
-// Mock Similar Products
-const SIMILAR_PRODUCTS = [
-  { id: 101, name: "Elegant Onion Pink Silk Saree with Geometric Weave &...", price: 2499, originalPrice: 4199, image: "/saree2.jpg", discount: "40% OFF" },
-  { id: 102, name: "Midnight Noir Sequinned Georgette Saree", price: 3299, originalPrice: 6599, image: "/saree3.jpg", discount: "50% OFF" },
-  { id: 103, name: "Elegant Handloom Silk Blend Saree with Zari Border", price: 1899, originalPrice: 3799, image: "/saree4.jpg", discount: "50% OFF" },
-];
-
-// Mock Reviews
-const REVIEWS = [
-  { 
-    id: 1, 
-    user: "Balaganesh", 
-    rating: 5, 
-    comment: "The saree fabric feels incredibly premium and soft. Perfect for weddings and festive occasions.", 
-    verified: true 
-  }
-];
+import { Share2, MessageCircle } from "lucide-react";
 
 export default function ShopProductDetails() {
-  const { slug, productId } = useParams();
-  const product = PRODUCTS.find(
-    (p) => p.slug === slug || p.id === Number(productId)
-  );
+  const { productId } = useParams(); // get product ID from route
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
 
+  const [selectedVariant, setSelectedVariant] = useState(null);
+  const [selectedSize, setSelectedSize] = useState("");
   const [mainImage, setMainImage] = useState("");
   const [qty, setQty] = useState(1);
+  const [width, setWidth] = useState(window.innerWidth);
 
+  // Fetch product from API
   useEffect(() => {
-    if (product) setMainImage(product.img || "/placeholder.png");
-  }, [product]);
+    const fetchProduct = async () => {
+      try {
+        const res = await fetch(`https://nainikaessentialsdatabas.onrender.com/products/${productId}`);
+        const data = await res.json();
+        setProduct(data);
 
+        // Set default selected variant (first one)
+        if (data?.variants?.length > 0) {
+          setSelectedVariant(data.variants[0]);
+          setSelectedSize(data.variants[0].size);
+          setMainImage(data.main_image || data.thumbnails?.[0] || "");
+        }
+
+        setLoading(false);
+      } catch (err) {
+        console.error("Error fetching product:", err);
+        setLoading(false);
+      }
+    };
+    fetchProduct();
+  }, [productId]);
+
+  // Handle window resize
+  useEffect(() => {
+    const handleResize = () => setWidth(window.innerWidth);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  if (loading) return <p style={{ padding: 100, textAlign: "center" }}>Loading product...</p>;
   if (!product) return <p style={{ padding: 100, textAlign: "center" }}>Product not found</p>;
 
-  const handleAddToCart = () => {
+  const isMobile = width < 768;
+  const currentStock = selectedVariant?.stock || 0;
+  const currentPrice = selectedVariant?.price || 0;
+
+ 
+const handleAddToCart = async () => {
   const user = JSON.parse(localStorage.getItem("adminUser"));
+
+  if (!selectedVariant) return alert("Please select a variant!");
+  if (qty > selectedVariant.stock) return alert(`Only ${selectedVariant.stock} items in stock`);
+
   const productObj = {
     product_id: product.id,
     product_name: product.name,
-    selected_color: product.colors[0] || "Default",
-    selected_size: "Free Size",
+    selected_color: selectedVariant.color || "Default",
+    selected_size: selectedVariant.size || "Free Size",
     quantity: qty,
-    price_at_addition: product.price,
-    product_images: [product.img],
+    price_at_addition: selectedVariant.price || 0,
+    product_images: [product.main_image, ...(product.thumbnails || [])],
   };
 
-  if (qty > product.stock) {
-    alert(`Only ${product.stock} items in stock`);
-    return;
-  }
+  try {
+    // 1️⃣ Reduce stock in backend immediately
+    const res = await fetch(
+      `https://nainikaessentialsdatabas.onrender.com/products/reduce-stock`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          product_id: product.id,
+          size: selectedVariant.size,
+          color: selectedVariant.color,
+          quantity: qty,
+        }),
+      }
+    );
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Failed to reduce stock");
 
-  if (user && user.user_id) {
-    // Logged-in: send to backend
-    fetch("https://nainikaessentialsdatabas.onrender.com/carts/add", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ user_id: user.user_id, product: productObj }),
-    })
-      .then(res => res.json())
-      .then(data => {
-        if (data.error) {
-          alert(data.error);
-        } else {
-          alert(`${product.name} added to cart!`);
-          window.dispatchEvent(new Event("cartUpdated"));
+    // 2️⃣ Update frontend stock immediately
+    setSelectedVariant(prev => ({ ...prev, stock: prev.stock - qty }));
+
+    // 3️⃣ Add to cart (backend or localStorage)
+    if (user && user.user_id) {
+      const cartRes = await fetch(
+        "https://nainikaessentialsdatabas.onrender.com/carts/add",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ user_id: user.user_id, product: productObj }),
         }
-      })
-      .catch(err => alert("Failed to add to cart."));
-  } else {
-    // Guest: store in localStorage
-    let guestCart = JSON.parse(localStorage.getItem("cart")) || [];
-
-    // Check if product already exists
-    const index = guestCart.findIndex(item => item.product_id === product.id);
-    if (index > -1) {
-      guestCart[index].quantity += qty;
+      );
+      const cartData = await cartRes.json();
+      if (!cartRes.ok) throw new Error(cartData.error || "Failed to add to cart");
     } else {
-      guestCart.push(productObj);
+      let guestCart = JSON.parse(localStorage.getItem("cart")) || [];
+      const index = guestCart.findIndex(
+        item =>
+          item.product_id === product.id &&
+          item.selected_color === productObj.selected_color &&
+          item.selected_size === productObj.selected_size
+      );
+      if (index > -1) guestCart[index].quantity += qty;
+      else guestCart.push(productObj);
+      localStorage.setItem("cart", JSON.stringify(guestCart));
     }
 
-    localStorage.setItem("cart", JSON.stringify(guestCart));
     alert(`${product.name} added to cart!`);
     window.dispatchEvent(new Event("cartUpdated"));
+  } catch (err) {
+    console.error(err);
+    alert(err.message);
   }
 };
 
 
-  const incrementQty = () => { if (qty < product.stock) setQty(qty + 1); };
-  const decrementQty = () => { if (qty > 1) setQty(qty - 1); };
+
+ const incrementQty = () => {
+  if (qty < (selectedVariant?.stock || 0)) {
+    setQty(qty + 1);
+  } else {
+    alert(`Only ${selectedVariant.stock} items in stock`);
+  }
+};
+
+const decrementQty = () => {
+  if (qty > 1) {
+    setQty(qty - 1);
+  }
+};
+const handleVariantSelect = (variant) => {
+  setSelectedVariant(variant);
+  setSelectedSize(variant.size);
+  setQty(1); // reset quantity
+};
+
+  
+  const handleShare = async () => {
+    if (navigator.share) {
+      await navigator.share({ title: product.name, text: product.category, url: window.location.href });
+    } else {
+      navigator.clipboard.writeText(window.location.href);
+      alert("Link copied!");
+    }
+  };
 
   return (
-    <div style={{ fontFamily: "'Segoe UI', Roboto, Helvetica, Arial, sans-serif" }}>
-      {/* Product Main Section */}
-      <div style={{
-        padding: "40px 5%",
-        display: "grid",
-        gridTemplateColumns: "80px 1fr 1fr",
-        gap: "40px",
-        alignItems: "start",
-        flexWrap: "wrap"
-      }}>
-        {/* Sidebar Thumbnails */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-          {[...Array(5)].map((_, index) => (
-            <div key={index} style={{
-              width: "70px",
-              height: "90px",
-              borderRadius: "4px",
-              overflow: "hidden",
-              border: index === 0 ? "2px solid #5d5ad1" : "1px solid #e0e0e0",
-              cursor: "pointer"
-            }}
-            onClick={() => setMainImage(product.img)}>
-              <img src={product.img} alt="thumbnail" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-            </div>
-          ))}
+    <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "20px" }}>
+      <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: "30px" }}>
+        
+        {/* Left: Images */}
+        <div style={{ flex: 1, display: 'flex', gap: '15px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {[product.main_image, ...(product.thumbnails || [])].map((img, idx) => (
+              <img
+                key={idx}
+                src={img}
+                onClick={() => setMainImage(img)}
+                style={{ width: '60px', height: '80px', objectFit: 'cover', borderRadius: '8px', cursor: 'pointer', border: mainImage === img ? '2px solid #4F46E5' : '1px solid #ddd' }}
+              />
+            ))}
+          </div>
+          <div style={{ flex: 1 }}>
+            <img src={mainImage} style={{ width: "100%", borderRadius: "16px", objectFit: "cover" }} alt="Product" />
+          </div>
         </div>
 
-        {/* Main Image */}
-        <div style={{ backgroundColor: "#fff", borderRadius: "12px", border: "1px solid #f0f0f0", overflow: "hidden" }}>
-          <img src={mainImage} alt={product.name} style={{ width: "100%", display: "block" }} />
-        </div>
-
-        {/* Product Details */}
-        <div style={{ paddingLeft: "10px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-            <h1 style={{ fontSize: "24px", fontWeight: "600", margin: "0 0 10px 0", color: "#1a1a1a", lineHeight: "1.3" }}>{product.name}</h1>
-            <div style={{ border: "1px solid #eee", padding: "6px", borderRadius: "50%", cursor: "pointer", display: 'flex' }}>
-              <Share2 size={18} color="#666" />
+        {/* Right: Info */}
+        <div style={{ flex: 1 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <h1 style={{ fontSize: '28px', fontWeight: '600' }}>{product.name}</h1>
+            <div onClick={handleShare} style={{ width: 40, height: 40, borderRadius: '50%', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+              <Share2 size={18} color="#64748b" />
             </div>
           </div>
 
-          <p style={{ color: "#666", fontSize: "14px", lineHeight: "1.6", marginBottom: "15px" }}>{product.description}</p>
+          <p style={{ color: '#666', margin: '10px 0' }}>Category: {product.category}</p>
 
           {/* Price */}
-          <div style={{ marginBottom: "25px" }}>
-            <div style={{ fontSize: "12px", color: "#999", marginBottom: "4px" }}>Price</div>
-            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-              <span style={{ fontSize: "28px", fontWeight: "700", color: "#000" }}>₹{product.price}</span>
-              <span style={{ fontSize: "16px", color: "#ccc", textDecoration: "line-through" }}>₹{product.originalPrice}</span>
+          <div style={{ marginBottom: '20px' }}>
+            <span style={{ fontSize: '12px', color: '#666', display: 'block' }}>Price</span>
+            <span style={{ fontSize: '24px', fontWeight: '700' }}>₹{currentPrice}</span>
+          </div>
+
+          {/* Variant selection */}
+          <div style={{ marginBottom: '20px' }}>
+            <p style={{ fontSize: '14px', fontWeight: '500', marginBottom: '10px' }}>Variants</p>
+            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+             {product.variants.map((v, idx) => (
+  <button key={idx} onClick={() => handleVariantSelect(v)}
+    style={{
+      padding: '10px 20px',
+      borderRadius: '8px',
+      border: selectedVariant === v ? '2px solid #4F46E5' : '1px solid #E5E7EB',
+      cursor: 'pointer'
+    }}
+  >
+    {v.color} - {v.size}
+  </button>
+))}
+
+            </div>
+            <p style={{ fontSize: '12px', color: '#666', marginTop: '8px' }}>{currentStock} available</p>
+          </div>
+
+          {/* Qty */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '30px' }}>
+            <span>Qty</span>
+            <div style={{ display: 'flex', alignItems: 'center', border: '1px solid #ddd', borderRadius: 20, padding: '2px 10px' }}>
+              <button onClick={decrementQty} style={{ border: 'none', background: 'none', cursor: 'pointer' }}>-</button>
+              <span style={{ padding: '0 10px' }}>{qty}</span>
+              <button onClick={incrementQty} style={{ border: 'none', background: 'none', cursor: 'pointer' }}>+</button>
             </div>
           </div>
 
-          {/* Quantity & Buttons */}
-          <div style={{ display: "flex", alignItems: "center", gap: "15px", marginBottom: "25px" }}>
-            <span style={{ fontSize: "13px", fontWeight: "600" }}>Qty</span>
-            <div style={{ display: "flex", border: "1px solid #e0e0e0", borderRadius: "6px", alignItems: "center" }}>
-              <button onClick={decrementQty} style={{ padding: "6px 14px", border: "none", background: "none", fontSize: "18px", cursor: "pointer" }}>-</button>
-              <div style={{ padding: "6px 12px", borderLeft: "1px solid #eee", borderRight: "1px solid #eee", fontSize: "14px" }}>{qty}</div>
-              <button onClick={incrementQty} style={{ padding: "6px 14px", border: "none", background: "none", fontSize: "18px", cursor: "pointer" }}>+</button>
-            </div>
-          </div>
+{/* Buttons */}
+<div
+  style={{
+    display: 'flex',
+    gap: 8,
+    padding: 12,
+    backgroundColor: '#fff',
+    borderTop: '1px solid #f0f0f0',
+    position: 'relative', // keep relative so buttons don't float over content
+    bottom: 'auto',
+    left: 0,
+    right: 0,
+    zIndex: 100,
+    justifyContent: 'space-between',
+    boxSizing: 'border-box',
+    flexDirection: 'row', // always side by side
+  }}
+>
+  <button
+    onClick={handleAddToCart}
+    style={{
+      flex: 1,        // share space equally
+      padding: 14,
+      borderRadius: 10,
+      border: '1px solid #d1d5db',
+      background: '#fff',
+      color: '#2563eb',
+      fontWeight: 600,
+      cursor: 'pointer',
+    }}
+  >
+    Add to Cart
+  </button>
+  <button
+    onClick={handleAddToCart}
+    style={{
+      flex: 1,
+      padding: 14,
+      borderRadius: 10,
+      border: 'none',
+      background: '#2563eb',
+      color: '#fff',
+      fontWeight: 600,
+      cursor: 'pointer',
+    }}
+  >
+    Buy Now
+  </button>
+</div>
 
-          <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
-            <button onClick={handleAddToCart} style={{ flex: 1, padding: "14px", background: "white", border: "1px solid #5d5ad1", color: "#5d5ad1", borderRadius: "6px", fontWeight: "600", cursor: "pointer" }}>Add To Cart</button>
-            <button onClick={() => { handleAddToCart(); alert("Proceeding to checkout..."); }} style={{ flex: 1, padding: "14px", background: "#2563eb", border: "none", color: "white", borderRadius: "6px", fontWeight: "600", cursor: "pointer" }}>Buy Now</button>
-          </div>
+
+{/* Spacer so content is not hidden behind fixed buttons */}
+<div style={{ height: 70 }} />
+
+
+{/* Spacer so content is not hidden behind fixed bar */}
+{isMobile && <div style={{ height: 70 }} />}
+
         </div>
+      </div>
+
+      {/* Floating Message Icon */}
+      <div style={{ position: 'fixed', bottom: 20, right: 20, background: '#4F46E5', padding: 15, borderRadius: '50%', boxShadow: '0 4px 10px rgba(0,0,0,0.2)', cursor: 'pointer' }}>
+        <MessageCircle color="white" />
       </div>
     </div>
   );

@@ -34,30 +34,39 @@ const LoginPage = () => {
   const handleChange = (key, value) => setForm({ ...form, [key]: value });
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
+  e.preventDefault();
+  setLoading(true);
 
-    try {
-      const res = await fetch(`${BASE_URL}/users/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
-      });
-      const data = await res.json();
+  try {
+    const res = await fetch(`${BASE_URL}/users/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(form),
+    });
 
-      if (res.ok) {
-        localStorage.setItem('adminUser', JSON.stringify(data.user)); // store user info
-        navigate('/'); // redirect to home
-      } else {
-        alert(data.error || 'Login failed');
-      }
-    } catch (err) {
-      console.error(err);
-      alert('Server error. Please try again.');
-    } finally {
-      setLoading(false);
+    const data = await res.json();
+
+    if (res.ok && data.user) {
+      // ✅ Store logged-in user in localStorage
+      localStorage.setItem('adminUser', JSON.stringify(data.user));
+
+      // ✅ Trigger cart update in Navbar
+      window.dispatchEvent(new Event("cartUpdated"));
+
+      // ✅ Redirect to home page
+      navigate('/');
+    } else {
+      // ❌ Handle login errors
+      alert(data.error || 'Invalid email or password');
     }
-  };
+  } catch (err) {
+    console.error('Login error:', err);
+    alert('Server error. Please try again.');
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <>

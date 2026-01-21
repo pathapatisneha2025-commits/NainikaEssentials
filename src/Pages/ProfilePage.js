@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { Mail, Phone, User, LogOut, MessageCircle } from 'lucide-react';
+import { useNavigate } from "react-router-dom";
 
 const ProfilePage = () => {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const storedUser = JSON.parse(localStorage.getItem('adminUser'));
@@ -27,7 +29,7 @@ const ProfilePage = () => {
 
   const handleLogout = () => {
     localStorage.removeItem('adminUser');
-    window.location.href = '/login';
+    navigate("/login");
   };
 
   if (loading) return <div style={{ textAlign: 'center', marginTop: '50px', fontFamily: 'sans-serif', color: '#64748b' }}>Loading profile...</div>;

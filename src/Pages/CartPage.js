@@ -212,7 +212,7 @@ export default function CartPage() {
           </div>
           <div className="summary-details">
             <div><span>MRP Total</span><span>₹{mrpTotal}</span></div>
-            <div className="discount"><span>Discount on MRP</span><span>-₹{discount}</span></div>
+            {/* <div className="discount"><span>Discount on MRP</span><span>-₹{discount}</span></div> */}
             <div className="total"><span>Total</span><span>₹{subtotal}</span></div>
             <div><span>Delivery</span><span>Free</span></div>
           </div>

@@ -193,7 +193,7 @@ useEffect(() => {
 
   const handleViewOffers = () => {
     setShowPopup(false);
-    navigate("/category/clothing");
+    navigate("/shop");
   };
 
   const closeLoginModal = () => setLoginModal(false);
@@ -234,7 +234,27 @@ useEffect(() => {
         .sidebar-link-content svg { font-size: 20px; color: #5b5bf0; }
         .sidebar-link.active { background: #f0f2ff; color: #5b5bf0; }
         .sidebar-link:active { background: #f5f5f5; }
-        .sidebar-footer { padding: 20px; border-top: 1px solid #f5f5f5; }
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 85%;
+  max-width: 320px;
+  height: 100vh;
+  background: #fff;
+  z-index: 2100;
+  transition: 0.4s ease;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 10px 0 30px rgba(0,0,0,0.1);
+  padding-bottom: env(safe-area-inset-bottom, 20px); /* Add safe padding for mobile */
+}
+
+.sidebar-footer {
+  margin-top: auto; /* push footer to bottom */
+  padding-bottom: 20px; /* extra spacing above mobile bottom nav */
+  border-top: 1px solid #f5f5f5;
+}
 
         .mobile-bottom-nav { display: none; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 92%; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); height: 65px; border-radius: 35px; box-shadow: 0 8px 30px rgba(0,0,0,0.1); z-index: 1000; justify-content: space-around; align-items: center; border: 1px solid #eee; }
 .cart-badge {
@@ -270,6 +290,11 @@ useEffect(() => {
         .hamburger { display: none; }
         @media (min-width: 993px) { .sidebar, .sidebar-overlay { display: none !important; } }
         @media (max-width: 992px) { .nav-center, .nav-right { display: none; } .mobile-bottom-nav { display: flex; } .hamburger { display: block; font-size: 28px; cursor: pointer; color: #333; } }
+@media (max-width: 992px) {
+  .sidebar-footer {
+    padding-bottom: 90px; /* leave space above mobile nav */
+  }
+}
 
         .login-modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #fff; padding: 24px; border-radius: 12px; z-index: 3000; width: 90%; max-width: 360px; box-shadow: 0 8px 25px rgba(0,0,0,0.2); text-align: center; }
         .login-modal button { margin-top: 12px; padding: 8px 16px; background: #5b5bf0; color: #fff; border: none; border-radius: 8px; cursor: pointer; }
@@ -288,7 +313,7 @@ useEffect(() => {
   style={{ left: menuOpen ? "0" : "-100%" }}
 >
   <div className="sidebar-header">
-    <span className="sidebar-logo">ElanCotts</span>
+    <span className="sidebar-logo">NainikaEssentials</span>
     <FiX
       size={26}
       onClick={() => setMenuOpen(false)}

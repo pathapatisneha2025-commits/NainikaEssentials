@@ -11,7 +11,6 @@ export default function CheckoutPage() {
   // Coupon state
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState(null);
-  const [couponDiscount, setCouponDiscount] = useState(0);
   const [allCoupons, setAllCoupons] = useState([]);
 
   const user = JSON.parse(localStorage.getItem("adminUser"));
@@ -24,16 +23,16 @@ export default function CheckoutPage() {
   // Fetch cart
   useEffect(() => {
     fetch(`https://nainikaessentialsdatabas.onrender.com/carts/${userId}`)
-      .then((res) => res.json())
-      .then((data) => { setCart(data.items || []); setLoading(false); })
+      .then(res => res.json())
+      .then(data => { setCart(data.items || []); setLoading(false); })
       .catch(() => setLoading(false));
   }, [userId]);
 
   // Fetch coupons
   useEffect(() => {
     fetch("https://nainikaessentialsdatabas.onrender.com/coupons/")
-      .then((res) => res.json())
-      .then((data) => setAllCoupons(data))
+      .then(res => res.json())
+      .then(data => setAllCoupons(data))
       .catch(console.error);
   }, []);
 
@@ -47,44 +46,64 @@ export default function CheckoutPage() {
   if (loading) return <div style={{ padding: "30px", textAlign: "center" }}>Loading cart...</div>;
   if (!cart.length) return <div style={{ padding: "30px", textAlign: "center" }}>Your cart is empty.</div>;
 
-  // Totals
+  // --- Totals ---
   const subtotal = cart.reduce((acc, item) => acc + (item.price_at_addition || 0) * (item.quantity || 0), 0);
-  const mrpTotal = cart.reduce((acc, item) => acc + ((item.price_at_addition || 0) + 500) * (item.quantity || 0), 0);
-  const discount = mrpTotal - subtotal;
-  const delivery = 0;
-  const totalAmount = Math.max(0, subtotal + delivery - couponDiscount);
 
-  // Apply coupon
-  const applyCoupon = () => {
-    if (!couponCode.trim()) return alert("Enter a coupon code");
-
-    const coupon = allCoupons.find(c => c.code.toUpperCase() === couponCode.trim().toUpperCase());
-    if (!coupon) return alert("Invalid coupon code");
-
-    let discountAmount = 0;
-    const discountValue = parseFloat(coupon.discount_value);
-
+  // Calculate coupon discount
+  let couponDiscount = 0;
+  if (appliedCoupon) {
     cart.forEach(item => {
-      const isProductApplicable = coupon.applicable_products.includes(item.product_id);
-      const isCategoryApplicable = coupon.applicable_categories.map(c => c.toLowerCase()).includes(item.category?.toLowerCase());
+      const itemId = parseInt(item.product_id);
+      const itemCategory = item.category?.toLowerCase().trim();
+
+      const isProductApplicable = appliedCoupon.applicable_products.map(Number).includes(itemId);
+      const isCategoryApplicable = appliedCoupon.applicable_categories.map(c => c.toLowerCase().trim()).includes(itemCategory);
 
       if (isProductApplicable || isCategoryApplicable) {
-        if (coupon.discount_type === "percentage") {
-          discountAmount += ((item.price_at_addition || 0) * item.quantity * discountValue) / 100;
+        if (appliedCoupon.discount_type === "percentage") {
+          couponDiscount += (item.price_at_addition || 0) * item.quantity * (parseFloat(appliedCoupon.discount_value) / 100);
         } else {
-          discountAmount += discountValue * item.quantity;
+          couponDiscount += parseFloat(appliedCoupon.discount_value) * item.quantity;
         }
       }
     });
+  }
 
-    if (discountAmount === 0) return alert("Coupon does not apply to any product in cart");
+  const delivery = 0;
+  const totalAmount = Math.max(0, subtotal + delivery - couponDiscount);
 
-    setAppliedCoupon(coupon);
-    setCouponDiscount(discountAmount);
-    alert(`Coupon applied! You saved ₹${discountAmount.toFixed(2)}`);
-  };
+  // --- Apply coupon ---
+ const applyCoupon = () => {
+  if (!couponCode.trim()) return alert("Enter a coupon code");
 
-  // Place order
+  const coupon = allCoupons.find(c => c.code.toUpperCase() === couponCode.trim().toUpperCase());
+  if (!coupon) return alert("Invalid coupon code");
+
+  let discountAmount = 0;
+  cart.forEach(item => {
+    const itemId = Number(item.product_id); // ensure number
+    const itemCategory = item.category?.toLowerCase().trim();
+
+    const isProductApplicable = coupon.applicable_products.map(Number).includes(itemId);
+    const isCategoryApplicable = coupon.applicable_categories.map(c => c.toLowerCase().trim()).includes(itemCategory);
+
+    if (isProductApplicable || isCategoryApplicable) {
+      if (coupon.discount_type === "percentage") {
+        discountAmount += (item.price_at_addition || 0) * item.quantity * (parseFloat(coupon.discount_value)/100);
+      } else {
+        discountAmount += parseFloat(coupon.discount_value) * item.quantity;
+      }
+    }
+  });
+
+  if (discountAmount === 0) return alert("Coupon does not apply to any product in cart");
+
+  setAppliedCoupon(coupon);
+  alert(`Coupon applied! You saved ₹${discountAmount.toFixed(2)}`);
+};
+
+
+  // --- Place order ---
   const placeOrder = async () => {
     if (!address.name || !address.phone || !address.pincode) {
       alert("Please fill delivery address");
@@ -120,13 +139,12 @@ export default function CheckoutPage() {
       setCart([]);
       setAppliedCoupon(null);
       setCouponCode("");
-      setCouponDiscount(0);
     } catch {
       alert("Order failed");
     }
   };
 
-  // Sizes for mobile
+  // --- Responsive sizes ---
   const size = isMobile ? {
     padding: "8px",
     inputPadding: "8px",
@@ -154,6 +172,7 @@ export default function CheckoutPage() {
   return (
     <div style={{ padding: size.padding, background: "#f9fafb", minHeight: "100vh", fontFamily: "Segoe UI, sans-serif" }}>
       <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1.7fr 1fr", gap: size.gap, maxWidth: "1200px", margin: "auto" }}>
+        
         {/* Address + Payment */}
         <div>
           <div style={{ background: "#fff", padding: size.cardPadding, borderRadius: size.borderRadius, border: "1px solid #eee", marginBottom: size.gap }}>
@@ -202,7 +221,7 @@ export default function CheckoutPage() {
                 type="text"
                 placeholder="Enter coupon code"
                 value={couponCode}
-                onChange={(e) => setCouponCode(e.target.value)}
+                onChange={e => setCouponCode(e.target.value)}
                 style={{ padding: size.inputPadding, flex: 1, minWidth: "120px", borderRadius: size.borderRadius, border: "1px solid #ccc", fontSize: size.fontSmall }}
               />
               <button onClick={applyCoupon} style={{ padding: size.buttonPadding, borderRadius: size.borderRadius, background: "#4f46e5", color: "#fff", border: "none", fontSize: size.fontSmall }}>
@@ -227,19 +246,33 @@ export default function CheckoutPage() {
               )
             })}
 
-            <div style={{ display:"flex", justifyContent:"space-between", margin:"6px 0", fontSize: size.fontSmall }}><span>MRP Total</span><span>₹{mrpTotal}</span></div>
-            <div style={{ display:"flex", justifyContent:"space-between", margin:"6px 0", color:"#10b981", fontSize: size.fontSmall }}><span>Discount</span><span>-₹{discount}</span></div>
-            {couponDiscount>0 && (
+            <div style={{ display:"flex", justifyContent:"space-between", margin:"6px 0", fontSize: size.fontSmall }}>
+              <span>Subtotal</span>
+              <span>₹{subtotal.toFixed(2)}</span>
+            </div>
+
+            {appliedCoupon && couponDiscount>0 && (
               <div style={{ display:"flex", justifyContent:"space-between", margin:"6px 0", color:"#10b981", fontSize: size.fontSmall }}>
                 <span>Coupon Discount ({appliedCoupon.code})</span>
                 <span>-₹{couponDiscount.toFixed(2)}</span>
               </div>
             )}
-            <div style={{ display:"flex", justifyContent:"space-between", margin:"6px 0", fontSize: size.fontSmall }}><span>Delivery</span><span>₹{delivery}</span></div>
-            <div style={{ display:"flex", justifyContent:"space-between", fontWeight:"700", fontSize: size.fontMedium, margin:"12px 0" }}><span>Total Amount</span><span>₹{totalAmount.toFixed(2)}</span></div>
+
+            <div style={{ display:"flex", justifyContent:"space-between", margin:"6px 0", fontSize: size.fontSmall }}>
+              <span>Delivery</span>
+              <span>₹{delivery}</span>
+            </div>
+
+            <div style={{ display:"flex", justifyContent:"space-between", fontWeight:"700", fontSize: size.fontMedium, margin:"12px 0" }}>
+              <span>Total Amount</span>
+              <span>₹{totalAmount.toFixed(2)}</span>
+            </div>
 
             <button style={{ width:"100%", padding: size.buttonPadding, background:"#4f46e5", color:"#fff", border:"none", borderRadius:size.borderRadius, fontSize:size.fontSmall, cursor:"pointer" }} onClick={placeOrder}>Place Order</button>
-            <div style={{ textAlign:"center", marginTop:"8px", fontSize:size.fontSmall, color:"#999" }}><ShieldCheck size={16} /> Secure checkout</div>
+
+            <div style={{ textAlign:"center", marginTop:"8px", fontSize:size.fontSmall, color:"#999" }}>
+              <ShieldCheck size={16} /> Secure checkout
+            </div>
           </div>
         </div>
       </div>

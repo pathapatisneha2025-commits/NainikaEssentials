@@ -12,18 +12,20 @@ const FAQ = () => {
         }
 
         .faq-header h1 {
-          font-size: 1.8rem;
+          font-size: 2rem;
           font-weight: 700;
-          margin-bottom: 30px;
+          margin-bottom: 40px;
           text-align: center;
           color: #1a1a1a;
         }
 
         .faq-section-title {
-          font-size: 1.2rem;
+          font-size: 1.3rem;
           font-weight: 600;
           color: #333;
-          margin: 30px 0 15px 0;
+          margin: 35px 0 15px 0;
+          border-bottom: 2px solid #e0e0e0;
+          padding-bottom: 5px;
         }
 
         .faq-item {
@@ -51,7 +53,7 @@ const FAQ = () => {
         }
 
         @media (max-width: 600px) {
-          .faq-section-title { font-size: 1rem; }
+          .faq-section-title { font-size: 1.1rem; }
           .faq-question { font-size: 0.95rem; }
           .faq-answer { font-size: 0.9rem; }
         }

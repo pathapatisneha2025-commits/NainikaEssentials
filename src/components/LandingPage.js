@@ -147,7 +147,7 @@ const cssStyles = `
   .chat-bubble { 
     width: 54px; 
     height: 54px; 
-    bottom: 100px; /* Positioned to avoid overlapping your bottom menu icons */
+    bottom: 150px; /* Positioned to avoid overlapping your bottom menu icons */
     right: 20px; 
   }
 }

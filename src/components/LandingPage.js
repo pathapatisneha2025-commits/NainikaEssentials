@@ -88,37 +88,12 @@ const LandingPage = () => {
 const cssStyles = `
 .page-container { width: 100%; background-color: #fff; }
 
-/* BANNER STYLING */
-.banner-container {
-  padding: 40px 4%; /* Matches the padding of the New Arrivals section */
-  box-sizing: border-box;
-}
-
-.exclusive-banner {
-  width: 100%;
-  cursor: pointer;
-  border-radius: 4px;
-  overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-  transition: transform 0.3s ease;
-}
-
-.exclusive-banner:hover {
-  transform: translateY(-3px);
-}
-
-.banner-image {
-  width: 100%;
-  display: block;
-  object-fit: cover;
-}
-
-/* UPDATED CHAT BUBBLE - EXACT MATCH */
+/* CHAT BUBBLE - BASE STYLES */
 .chat-bubble { 
   position: fixed; 
-  bottom: 110px; /* Increased to sit clearly above the white nav bar on mobile */
-  right: 25px; 
-  background: #5D5FEF; /* The specific vibrant purple from your screenshot */
+  bottom: 40px; 
+  right: 30px; 
+  background: #5D5FEF; 
   width: 58px; 
   height: 58px; 
   border-radius: 50%; 
@@ -128,102 +103,66 @@ const cssStyles = `
   color: white; 
   cursor: pointer; 
   z-index: 9999;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2); /* Soft shadow for depth */
-  transition: transform 0.2s ease, background 0.2s ease;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease;
 }
 
-.chat-bubble:hover {
-  transform: scale(1.05);
-  background: #4e50e5; /* Subtle darken on hover */
+/* CHAT MODAL - FIX: Added fixed position and visibility */
+.chat-modal {
+  position: fixed;
+  bottom: 110px; /* Sits above the bubble on desktop */
+  right: 30px;
+  width: 330px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+  z-index: 10000;
+  overflow: hidden;
+  animation: slideUp 0.3s ease-out;
 }
 
-/* Ensure the icon stays perfectly centered */
-.chat-bubble svg {
-  display: block;
-}
-
-/* Mobile responsive adjustments */
+/* CONSOLIDATED MOBILE STYLES */
 @media (max-width: 768px) {
   .chat-bubble { 
-    width: 54px; 
-    height: 54px; 
-    bottom: 150px; /* Positioned to avoid overlapping your bottom menu icons */
-    right: 20px; 
+    width: 54px !important; 
+    height: 54px !important; 
+    bottom: 120px !important; /* Clears your bottom navigation bar */
+    right: 20px !important; 
   }
-}
-@keyframes slideUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+
+  .chat-modal { 
+    width: 90% !important;
+    max-width: 360px;
+    right: 5% !important;
+    bottom: 185px !important; /* Sits above the moved bubble */
+    border-radius: 16px;
+  }
+
+  .modal-slide, .modal-header { height: 110px !important; }
 }
 
+/* INTERNAL MODAL STYLES */
 .modal-header { position: relative; width: 100%; height: 130px; overflow: hidden; background: #f0f0f0; }
 .slider-track { display: flex; width: max-content; }
 .modal-track { animation: scrollContinuous 12s linear infinite; }
 @keyframes scrollContinuous { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
 .modal-slide { width: 330px; height: 130px; flex-shrink: 0; }
 .modal-slide img { width: 100%; height: 100%; object-fit: cover; }
-
 .modal-close-btn { 
   position: absolute; top: 10px; right: 10px; 
   background: white; border: none; width: 30px; height: 30px; border-radius: 50%; 
   cursor: pointer; display: flex; align-items: center; justify-content: center; 
-  z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  z-index: 101; box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
-
 .modal-body { padding: 20px; }
-.modal-intro h3 { margin: 0; font-size: 1.1rem; font-weight: 700; color: #1a2b48; }
-.modal-intro p { margin: 4px 0 18px 0; color: #666; font-size: 0.85rem; }
-
 .options-container { display: flex; flex-direction: column; gap: 12px; }
-.support-option { 
-  display: flex; 
-  align-items: center; 
-  gap: 15px; 
-  padding: 12px 15px; 
-  border: 1px solid #f0f2f5; 
-  border-radius: 12px; 
-  cursor: pointer; 
-  transition: all 0.2s ease; 
-}
-.support-option:hover { background: #f8f9ff; border-color: #5a4fcf; }
-.option-icon { font-size: 1.4rem; color: #5a4fcf; display: flex; align-items: center; }
+.support-option { display: flex; align-items: center; gap: 15px; padding: 12px; border: 1px solid #f0f2f5; border-radius: 12px; cursor: pointer; }
 .option-icon.whatsapp { color: #25D366; }
-.option-text strong { display: block; font-size: 0.9rem; color: #1a2b48; }
-.option-text span { font-size: 0.75rem; color: #888; }
 
-/* CHAT MODAL RESPONSIVE FIX */
-@media (max-width: 768px) {
-  .chat-modal { 
-    width: 90% !important;     /* Fit most of the screen */
-    max-width: 360px;          /* Optional: cap max width */
-    right: 5% !important;      /* Centered horizontally */
-    bottom: 80px !important;
-    border-radius: 16px;
-  }
-
-  .modal-slide { 
-    width: 100% !important;    /* Fit the chat modal width */
-    height: auto !important;   /* Maintain aspect ratio */
-  }
-
-  .modal-header { 
-    height: auto !important;   /* Adjust according to slides */
-  }
-
-  .slider-track, .modal-track {
-    width: 100% !important;    /* Ensure the scrolling track fits modal */
-  }
-
-  .chat-bubble { 
-    width: 50px !important; 
-    height: 50px !important; 
-    bottom: 150px !important; 
-    right: 20px !important; 
-  }
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
-
-}
-
 `;
 
 export default LandingPage;

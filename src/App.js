@@ -31,6 +31,7 @@ import TermsAndConditions from "./Pages/TermsCondition";
 import ReturnsRefundsPolicy from "./Pages/ReturnPolicy";
 import ShippingInformation from "./Pages/Shipping";
 import ScrollToTop from "./components/ScrolllTop";
+import OrderDetail from "./Pages/myOrdeDetails";
 
 function App() {
   return (
@@ -68,6 +69,8 @@ function App() {
                 <Route path="/profile" element={<ProfilePage />} />
 
         <Route path="/orders" element={<OrdersPage />} />
+                <Route path="/orders/:id" element={<OrderDetail />} />
+
                 <Route path="/myorders/:userId" element={<MyOrderDetails />} />
 
 <Route path="/category/:category" element={<CategoryProducts />} />

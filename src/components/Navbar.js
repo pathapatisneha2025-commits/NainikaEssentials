@@ -13,7 +13,8 @@ import {
   FiLogOut,
   FiChevronRight
 } from "react-icons/fi";
-
+import { HiHome, HiOutlineUser } from "react-icons/hi2";
+import { LuPackage } from "react-icons/lu";
 export default function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -256,25 +257,44 @@ useEffect(() => {
   border-top: 1px solid #f5f5f5;
 }
 
-        .mobile-bottom-nav { display: none; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 92%; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); height: 65px; border-radius: 35px; box-shadow: 0 8px 30px rgba(0,0,0,0.1); z-index: 1000; justify-content: space-around; align-items: center; border: 1px solid #eee; }
-.cart-badge {
-  position: absolute;
-  top: -6px;
-  right: -6px;
-  background: #ff4d4f;
-  color: white;
-  border-radius: 50%;
-  font-size: 12px;
-  font-weight: 600;
-  min-width: 18px;
-  height: 18px;
-  display: flex;
+/* Mobile Bottom Nav - default hidden */
+.mobile-bottom-nav {
+  display: none; /* hidden by default */
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 400px;
+  height: 65px;
+  background: white;
+  justify-content: space-around;
   align-items: center;
-  justify-content: center;
-  padding: 0 5px;
-  line-height: 1;
-  box-shadow: 0 0 2px rgba(0,0,0,0.2);
+  border-radius: 35px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  padding: 0 10px;
+  z-index: 1000;
 }
+
+/* Show only on mobile */
+@media (max-width: 992px) {
+  .mobile-bottom-nav {
+    display: flex; /* visible on mobile */
+  }
+}
+
+/* Ensure hidden on desktop */
+@media (min-width: 993px) {
+  .mobile-bottom-nav {
+    display: none !important; /* hide on desktop */
+  }
+}
+        .m-nav-item { display: flex; align-items: center; justify-content: center; color: #555; font-size: 24px; text-decoration: none; transition: all 0.3s ease; height: 45px; border-radius: 25px; }
+        .m-nav-item.active { background-color: #f0f0ff; color: #5d5fef; padding: 0 15px; gap: 8px; }
+        .nav-label { font-size: 14px; font-weight: 600; display: none; }
+        .m-nav-item.active .nav-label { display: block; }
+        .icon-wrapper { position: relative; display: flex; }
+        .cart-badge { position: absolute; top: -5px; right: -8px; background: #ff4d4f; color: white; font-size: 10px; min-width: 16px; height: 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; }
 /* Increase mobile bottom nav icon size */
 .mobile-bottom-nav .m-nav-item svg {
   font-size: 28px; /* increase to 28px (default is ~20px) */
@@ -298,6 +318,74 @@ useEffect(() => {
 
         .login-modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #fff; padding: 24px; border-radius: 12px; z-index: 3000; width: 90%; max-width: 360px; box-shadow: 0 8px 25px rgba(0,0,0,0.2); text-align: center; }
         .login-modal button { margin-top: 12px; padding: 8px 16px; background: #5b5bf0; color: #fff; border: none; border-radius: 8px; cursor: pointer; }
+        .mobile-bottom-nav {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 400px;
+  height: 65px;
+  background: white;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  border-radius: 35px; /* Creates the rounded floating look */
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  padding: 0 10px;
+  z-index: 1000;
+}
+
+.m-nav-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #555;
+  font-size: 24px;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  height: 45px;
+  border-radius: 25px;
+}
+
+/* The Active "Pill" State from your screenshot */
+.m-nav-item.active {
+  background-color: #f0f0ff; /* Light purple tint */
+  color: #5d5fef;            /* Brand purple */
+  padding: 0 15px;
+  gap: 8px;
+}
+
+.nav-label {
+  font-size: 14px;
+  font-weight: 600;
+  display: none; /* Hidden unless active */
+}
+
+.m-nav-item.active .nav-label {
+  display: block;
+}
+
+.icon-wrapper {
+  position: relative;
+  display: flex;
+}
+
+.cart-badge {
+  position: absolute;
+  top: -5px;
+  right: -8px;
+  background: #ff4d4f;
+  color: white;
+  font-size: 10px;
+  min-width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
       `}</style>
 
    {/* Sidebar Overlay */}
@@ -387,27 +475,30 @@ useEffect(() => {
       </header>
 {/* Mobile Bottom Nav */}
 <nav className="mobile-bottom-nav">
-  <NavLink to="/" className="m-nav-item">
-    <FiHome />
+  <NavLink to="/" className={({ isActive }) => isActive ? "m-nav-item active" : "m-nav-item"}>
+    <HiHome />
+    <span className="nav-label">Home</span>
   </NavLink>
 
-  <NavLink to="/shop" className="m-nav-item">
-    <FiPackage />
+  <NavLink to="/shop" className={({ isActive }) => isActive ? "m-nav-item active" : "m-nav-item"}>
+    <LuPackage />
+    <span className="nav-label">Shop</span>
   </NavLink>
 
-  <div className="m-nav-item icon-link" style={{ position: "relative" }} onClick={handleCartClick}>
-    <FiShoppingCart />
-    {cartCount > 0 && <span className="cart-badge">{cartCount}</span>}
+  <div className="m-nav-item icon-link" onClick={handleCartClick}>
+    <div className="icon-wrapper">
+      <FiShoppingCart />
+      {cartCount > 0 && <span className="cart-badge">{cartCount}</span>}
+    </div>
   </div>
 
   <div className="m-nav-item" onClick={handleOrdersClick}>
     <FiShoppingBag />
   </div>
 
-  {/* Uncomment if you want a menu button */}
-  {/* <div className="m-nav-item" onClick={() => setMenuOpen(true)}>
-        <FiMenu />
-      </div> */}
+  <NavLink to="/profile" className={({ isActive }) => isActive ? "m-nav-item active" : "m-nav-item"}>
+    <HiOutlineUser />
+  </NavLink>
 </nav>
 
 

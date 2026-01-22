@@ -26,11 +26,10 @@ const LandingPage = () => {
           />
         </div>
       </section>
-
-     {/* FLOATING CHAT BUBBLE */}
+{/* FLOATING CHAT BUBBLE */}
 <div className={`chat-bubble ${isOpen ? 'active' : ''}`} onClick={() => setIsOpen(!isOpen)}>
-  {/* HiChatAlt2 gives you the overlapping double-bubble look */}
-  {isOpen ? <FiX size={24} /> : <HiChatAlt2 size={30} />} 
+  {/* HiChatAlt2 gives you the overlapping double-bubble look from your screenshot */}
+  {isOpen ? <FiX size={24} /> : <HiChatAlt2 size={32} />} 
 </div>
       {/* SUPPORT MODAL */}
       {isOpen && (
@@ -114,44 +113,41 @@ const cssStyles = `
   object-fit: cover;
 }
 
-/* CHAT BUBBLE - MATCHING SCREENSHOT PURPLE */
 /* UPDATED CHAT BUBBLE - EXACT MATCH */
 .chat-bubble { 
   position: fixed; 
-  bottom: 40px; 
-  right: 30px; 
-  /* The specific vibrant purple from your screenshot */
-  background: #5D5FEF; 
-  /* Equal width and height makes it a perfect circle */
-  width: 56px; 
-  height: 56px; 
+  bottom: 110px; /* Increased to sit clearly above the white nav bar on mobile */
+  right: 25px; 
+  background: #5D5FEF; /* The specific vibrant purple from your screenshot */
+  width: 58px; 
+  height: 58px; 
   border-radius: 50%; 
   display: flex; 
   justify-content: center; 
   align-items: center; 
   color: white; 
   cursor: pointer; 
-  z-index: 9998;
-  /* Updated shadow for a subtle lift */
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
-  transition: transform 0.2s ease;
+  z-index: 9999;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2); /* Soft shadow for depth */
+  transition: transform 0.2s ease, background 0.2s ease;
 }
 
 .chat-bubble:hover {
   transform: scale(1.05);
+  background: #4e50e5; /* Subtle darken on hover */
 }
 
-/* Ensure the icon is centered */
+/* Ensure the icon stays perfectly centered */
 .chat-bubble svg {
   display: block;
 }
 
-/* Responsive adjustment for mobile screens */
+/* Mobile responsive adjustments */
 @media (max-width: 768px) {
   .chat-bubble { 
-    width: 50px; 
-    height: 50px; 
-    bottom: 80px; 
+    width: 54px; 
+    height: 54px; 
+    bottom: 100px; /* Positioned to avoid overlapping your bottom menu icons */
     right: 20px; 
   }
 }

@@ -209,35 +209,12 @@ const cssStyles = `
     width: 100% !important;    /* Ensure the scrolling track fits modal */
   }
 
-  .chat-bubble {
-  position: fixed;
-  right: 20px;
-  bottom: calc(
-    var(--mobile-nav-height) +
-    var(--mobile-nav-bottom-gap) +
-    20px +
-    env(safe-area-inset-bottom)
-  );
-  background: #5a4fcf;
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  color: white;
-  cursor: pointer;
-  z-index: 1200; /* above nav */
-  box-shadow: 0 4px 15px rgba(90, 79, 207, 0.4);
-}
-@media (max-width: 992px) {
-  .chat-bubble {
-    width: 50px;
-    height: 50px;
-    right: 16px;
+  .chat-bubble { 
+    width: 50px !important; 
+    height: 50px !important; 
+    bottom: 20px !important; 
+    right: 20px !important; 
   }
-}
-
 }
 
 }

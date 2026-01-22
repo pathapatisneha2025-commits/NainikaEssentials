@@ -217,7 +217,7 @@ const cssStyles = `
   .chat-bubble { 
     width: 50px !important; 
     height: 50px !important; 
-    bottom: 110px !important; 
+    bottom: 150px !important; 
     right: 20px !important; 
   }
 }

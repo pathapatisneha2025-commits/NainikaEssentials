@@ -75,6 +75,8 @@ function App() {
 <Route path="/shopproduct/:productId" element={<ShopProductDetails />} />
 
                 <Route path="/contact" element={<ContactPage />} />
+                                <Route path="/login" element={<LoginPage />} />
+
                 <Route path="/register" element={<RegisterPage />} />
                 <Route path="/faq" element={<FAQ />} />
                 <Route path="/privacypolicy" element={<PrivacyPolicy/>} />

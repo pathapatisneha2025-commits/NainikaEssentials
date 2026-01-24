@@ -1,44 +1,29 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from "react-router-dom";
 
 const FeaturedSection = () => {
-      const navigate = useNavigate();
-  
-  const products = [
-    {
-      id: 1,
-      name: "Slim Fit Cotton Shirt",
-      brand: "ELAN COTTS",
-      discount: "50% OFF",
-      options: "2 colours available",
-      img: "/shirts.jpeg"
-    },
-    {
-      id: 2,
-      name: "Elan Cotts Slim Fit Cotton Pant",
-      brand: "ELAN COTTS",
-      discount: "43% OFF",
-      options: "2 colours available",
-      img: "/pants.jpeg"
-    },
-    {
-      id: 3,
-      name: "Elan Cotts Slim Fit Shirt",
-      brand: "ELAN COTTS",
-      discount: "25% OFF",
-      options: "2 colours available",
-      img: "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?auto=format&fit=crop&q=80&w=400"
-    },
-    {
-        id: 4,
-        name: "Casual Denim Jacket",
-        brand: "ELAN COTTS",
-        discount: "30% OFF",
-        options: "1 colour available",
-        img: "/hoodie.jpeg"
-      }
-  ];
+  const navigate = useNavigate();
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
 
+  // Fetch featured products
+  const fetchFeatured = async () => {
+    try {
+      const res = await fetch("https://nainikaessentialsdatabas.onrender.com/bestseller/all");
+      if (!res.ok) throw new Error("Failed to fetch featured products");
+      const data = await res.json();
+      const featuredProducts = data.filter(p => p.type === "featured");
+      setProducts(featuredProducts);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchFeatured();
+  }, []);
   return (
     <div style={styles.pageWrapper}>
       <style>
@@ -90,41 +75,42 @@ const FeaturedSection = () => {
 </section>
 
 
-      {/* Heading matching Screenshot */}
-      <div className="header-info" style={styles.footerText}>
+  {/* Heading */}
+      <div style={styles.footerText}>
         <h2 style={styles.sectionHeading}>Featured Collections</h2>
         <p style={styles.sectionSubheading}>Handpicked styles that define our signature look</p>
       </div>
 
-      {/* Smaller Compact Product Grid */}
-      <div className="product-grid">
-        {products.map((item, index) => (
-<div
-            key={item.id}
-            className="card"
-            style={styles.card}
-            onClick={() => navigate("/shop")}
-          >                <div style={styles.imageWrapper}>
-              <img src={item.img} alt={item.name} style={styles.productImg} />
-              <div style={styles.discountTag}>{item.discount}</div>
-              
-              {/* Force 'View Details' to show on 2nd card to mimic your screenshot exactly */}
-              <button 
-                className="hover-btn" 
-                style={{...styles.viewBtn, opacity: index === 1 ? 1 : 0}}
-              >
-                View Details
-              </button>
+      {/* Featured Products Grid */}
+      {loading ? (
+        <p style={{ padding: "0 5%" }}>Loading featured products...</p>
+      ) : products.length === 0 ? (
+        <p style={{ padding: "0 5%" }}>No featured products found.</p>
+      ) : (
+        <div className="product-grid" style={styles.productGrid}>
+          {products.map((item) => (
+            <div
+              key={item.id}
+              style={styles.card}
+              onClick={() => navigate(`/product/${item.id}`)}
+            >
+              <div style={styles.imageWrapper}>
+                <img src={item.main_image} alt={item.name} style={styles.productImg} />
+                <div style={styles.discountTag}>{item.discount || "Best Deal"}</div>
+              </div>
+              <div style={styles.cardContent}>
+                <p style={styles.cardBrand}>ELAN COTTS</p>
+                <h3 style={styles.cardTitle}>{item.name}</h3>
+                {item.variants?.length > 0 && (
+                  <p style={styles.cardOptions}>
+                    {item.variants.length} {item.variants.length > 1 ? "options available" : "option available"}
+                  </p>
+                )}
+              </div>
             </div>
-            
-            <div style={styles.cardContent}>
-              <p style={styles.cardBrand}>{item.brand}</p>
-              <h3 style={styles.cardTitle}>{item.name}</h3>
-              <p style={styles.cardOptions}>{item.options}</p>
-            </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

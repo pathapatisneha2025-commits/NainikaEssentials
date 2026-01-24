@@ -74,7 +74,7 @@ function App() {
                 <Route path="/myorders/:userId" element={<MyOrderDetails />} />
 
 <Route path="/category/:category" element={<CategoryProducts />} />
-        <Route path="/product/:slug/:productId" element={<ProductDetails />} />
+        <Route path="/product/:productId" element={<ProductDetails />} />
 <Route path="/shopproduct/:productId" element={<ShopProductDetails />} />
 
                 <Route path="/contact" element={<ContactPage />} />

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { ShieldCheck } from "lucide-react";
 
 const BASE_URL = "https://nainikaessentialsdatabas.onrender.com";
+const GST_RATE = 0.18; // 18% GST
 
 export default function CheckoutPage() {
   const [cart, setCart] = useState([]);
@@ -13,7 +14,7 @@ export default function CheckoutPage() {
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState(null);
   const [allCoupons, setAllCoupons] = useState([]);
-  const [codCharge, setCodCharge] = useState(0); // dynamic COD charge
+  const [codCharge, setCodCharge] = useState(0);
 
   const user = JSON.parse(localStorage.getItem("adminUser"));
   let userId = user?.user_id || localStorage.getItem("guest_id");
@@ -38,7 +39,7 @@ export default function CheckoutPage() {
       .catch(console.error);
   }, []);
 
-  // Fetch COD extra charge from admin panel
+  // Fetch COD charge
   useEffect(() => {
     fetch(`${BASE_URL}/cod/all`)
       .then(res => res.json())
@@ -55,36 +56,36 @@ export default function CheckoutPage() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  if (loading) return <div style={{ padding: "30px", textAlign: "center" }}>Loading cart...</div>;
-  if (!cart.length) return <div style={{ padding: "30px", textAlign: "center" }}>Your cart is empty.</div>;
+  if (loading) return <div style={{ padding: 30, textAlign: "center" }}>Loading cart...</div>;
+  if (!cart.length) return <div style={{ padding: 30, textAlign: "center" }}>Your cart is empty.</div>;
 
-  // --- Totals ---
+  // --- Calculations ---
   const subtotal = cart.reduce((acc, item) => acc + (item.price_at_addition || 0) * (item.quantity || 0), 0);
 
-  // Calculate coupon discount
+  // Coupon discount calculation
   let couponDiscount = 0;
   if (appliedCoupon) {
     cart.forEach(item => {
-      const itemId = parseInt(item.product_id);
+      const itemId = Number(item.product_id);
       const itemCategory = item.category?.toLowerCase().trim();
-
       const isProductApplicable = appliedCoupon.applicable_products.map(Number).includes(itemId);
       const isCategoryApplicable = appliedCoupon.applicable_categories.map(c => c.toLowerCase().trim()).includes(itemCategory);
 
       if (isProductApplicable || isCategoryApplicable) {
-        if (appliedCoupon.discount_type === "percentage") {
-          couponDiscount += (item.price_at_addition || 0) * item.quantity * (parseFloat(appliedCoupon.discount_value) / 100);
-        } else {
-          couponDiscount += parseFloat(appliedCoupon.discount_value) * item.quantity;
-        }
+        couponDiscount += appliedCoupon.discount_type === "percentage"
+          ? (item.price_at_addition || 0) * item.quantity * (parseFloat(appliedCoupon.discount_value) / 100)
+          : parseFloat(appliedCoupon.discount_value) * item.quantity;
       }
     });
   }
 
-  // Delivery / COD charge
+  const taxableAmount = subtotal - couponDiscount;
+  const cgst = taxableAmount * (GST_RATE / 2);
+  const sgst = taxableAmount * (GST_RATE / 2);
   const delivery = paymentMethod === "cod" ? codCharge : 0;
-  const totalAmount = Math.max(0, subtotal + delivery - couponDiscount);
+  const totalAmount = Math.max(0, taxableAmount + cgst + sgst + delivery);
 
+  // Apply coupon
   const applyCoupon = () => {
     if (!couponCode.trim()) return alert("Enter a coupon code");
 
@@ -95,21 +96,17 @@ export default function CheckoutPage() {
     cart.forEach(item => {
       const itemId = Number(item.product_id);
       const itemCategory = item.category?.toLowerCase().trim();
-
       const isProductApplicable = coupon.applicable_products.map(Number).includes(itemId);
       const isCategoryApplicable = coupon.applicable_categories.map(c => c.toLowerCase().trim()).includes(itemCategory);
 
       if (isProductApplicable || isCategoryApplicable) {
-        if (coupon.discount_type === "percentage") {
-          discountAmount += (item.price_at_addition || 0) * item.quantity * (parseFloat(coupon.discount_value)/100);
-        } else {
-          discountAmount += parseFloat(coupon.discount_value) * item.quantity;
-        }
+        discountAmount += coupon.discount_type === "percentage"
+          ? (item.price_at_addition || 0) * item.quantity * (parseFloat(coupon.discount_value)/100)
+          : parseFloat(coupon.discount_value) * item.quantity;
       }
     });
 
     if (discountAmount === 0) return alert("Coupon does not apply to any product in cart");
-
     setAppliedCoupon(coupon);
     alert(`Coupon applied! You saved ₹${discountAmount.toFixed(2)}`);
   };
@@ -127,13 +124,15 @@ export default function CheckoutPage() {
         quantity: item.quantity,
         price: item.price_at_addition,
         size: item.selected_size,
-        color: typeof item.selected_color === "string" ? item.selected_color : item.selected_color?.color || ""
+        color: typeof item.selected_color==="string" ? item.selected_color : item.selected_color?.color || ""
       }))),
       total_amount: totalAmount.toFixed(2),
       shipping_address: JSON.stringify(address),
       payment_method: paymentMethod,
       applied_coupon: appliedCoupon?.code || null,
       coupon_discount: couponDiscount.toFixed(2),
+      cgst: cgst.toFixed(2),
+      sgst: sgst.toFixed(2),
       cod_extra: delivery.toFixed(2)
     };
 
@@ -161,13 +160,12 @@ export default function CheckoutPage() {
   return (
     <div style={{ padding: size.padding, background: "#f9fafb", minHeight: "100vh", fontFamily: "Segoe UI, sans-serif" }}>
       <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1.7fr 1fr", gap: size.gap, maxWidth: 1200, margin: "auto" }}>
-
         {/* Address + Payment */}
         <div>
           <div style={{ background: "#fff", padding: size.cardPadding, borderRadius: size.borderRadius, border: "1px solid #eee", marginBottom: size.gap }}>
             <h2 style={{ fontSize: size.fontLarge }}>Delivery Address</h2>
             <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: size.gap }}>
-              {["Full Name","Street Address","City","State","Phone Number","Pincode"].map((label, i) => (
+              {["Full Name","Street Address","City","State","Phone Number","Pincode"].map((label,i) => (
                 <input
                   key={i}
                   placeholder={label}
@@ -182,28 +180,19 @@ export default function CheckoutPage() {
           {/* Payment Method */}
           <div style={{ background: "#fff", padding: size.cardPadding, borderRadius: size.borderRadius, border: "1px solid #eee", marginBottom: size.gap }}>
             <h2 style={{ fontSize: size.fontLarge }}>Payment Method</h2>
-
             {["online","cod"].map(method => (
               <div key={method} style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
                 <label style={{
-                  display: "flex",
-                  gap: size.gap,
-                  padding: size.padding,
-                  borderRadius: size.borderRadius,
+                  display: "flex", gap: size.gap, padding: size.padding, borderRadius: size.borderRadius,
                   border: paymentMethod===method ? `2px solid #4f46e5` : "1px solid #ddd",
-                  background: paymentMethod===method ? "#f5f7ff" : "#fff",
-                  cursor: "pointer",
-                  fontSize: size.fontSmall,
-                  marginBottom: size.gap,
-                  alignItems: "center"
+                  background: paymentMethod===method ? "#f5f7ff" : "#fff", cursor: "pointer",
+                  fontSize: size.fontSmall, marginBottom: size.gap, alignItems: "center"
                 }}>
                   <input type="radio" checked={paymentMethod===method} onChange={()=>setPaymentMethod(method)} />
                   {method==="cod" ? "Cash on Delivery" : "Online Payment"}
                 </label>
-
-                {/* Show COD extra charge only when COD is selected */}
-                {method === "cod" && paymentMethod === "cod" && codCharge > 0 && (
-                  <span style={{ color: "red", fontWeight: "600", marginLeft: size.inputPadding }}>
+                {method==="cod" && paymentMethod==="cod" && codCharge>0 && (
+                  <span style={{ color:"red", fontWeight:"600", marginLeft:size.inputPadding }}>
                     COD Extra Charge*: ₹{codCharge}
                   </span>
                 )}
@@ -214,69 +203,63 @@ export default function CheckoutPage() {
 
         {/* Order Summary */}
         <div style={{ position: isMobile ? "static" : "sticky", top: isMobile ? "auto" : 20 }}>
-          <div style={{ background: "#fff", padding: size.cardPadding, borderRadius: size.borderRadius, border: "1px solid #eee" }}>
+          <div style={{ background:"#fff", padding:size.cardPadding, borderRadius:size.borderRadius, border:"1px solid #eee" }}>
             <h3 style={{ fontSize: size.fontMedium }}>Order Summary</h3>
 
-            <div style={{ display: "flex", gap: size.gap, marginBottom: size.gap, flexWrap: "wrap" }}>
+            {/* Coupon input */}
+            <div style={{ display:"flex", gap:size.gap, marginBottom:size.gap, flexWrap:"wrap" }}>
               <input
                 type="text"
                 placeholder="Enter coupon code"
                 value={couponCode}
-                onChange={e => setCouponCode(e.target.value)}
-                style={{ padding: size.inputPadding, flex: 1, minWidth: "120px", borderRadius: size.borderRadius, border: "1px solid #ccc", fontSize: size.fontSmall }}
+                onChange={e=>setCouponCode(e.target.value)}
+                style={{ padding:size.inputPadding, flex:1, minWidth:"120px", borderRadius:size.borderRadius, border:"1px solid #ccc", fontSize:size.fontSmall }}
               />
-              <button onClick={applyCoupon} style={{ padding: size.buttonPadding, borderRadius: size.borderRadius, background: "#4f46e5", color: "#fff", border: "none", fontSize: size.fontSmall }}>
+              <button onClick={applyCoupon} style={{ padding:size.buttonPadding, borderRadius:size.borderRadius, background:"#4f46e5", color:"#fff", border:"none", fontSize:size.fontSmall }}>
                 Apply
               </button>
             </div>
 
+            {/* Display all available coupons */}
+            <div style={{ marginBottom:size.gap, fontSize:size.fontSmall }}>
+              <strong>Available Coupons:</strong>
+              <ul>
+                {allCoupons.map(c => (
+                  <li key={c.code}>Code: {c.code} | Discount: {c.discount_type==="percentage"?c.discount_value+"%":"₹"+c.discount_value}</li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Cart items */}
             {cart.map(item => {
               const image = item.product_images?.[0] || "/placeholder.png";
               const color = typeof item.selected_color==="string" ? item.selected_color : item.selected_color?.color || "";
               return (
-                <div key={item.product_id+color+item.selected_size} style={{ display:"flex", flexDirection: isMobile?"column":"row", alignItems: isMobile?"flex-start":"center", gap: size.gap, marginBottom: size.gap }}>
-                  <img src={image} alt={item.product_name} style={{ width: size.imageSize, height: size.imageSize, borderRadius: size.borderRadius, objectFit:"cover", marginBottom: isMobile?"8px":"0" }} />
-                  <div style={{ flex: 1, fontSize: size.fontSmall }}>
+                <div key={item.product_id+color+item.selected_size} style={{ display:"flex", flexDirection:isMobile?"column":"row", alignItems:isMobile?"flex-start":"center", gap:size.gap, marginBottom:size.gap }}>
+                  <img src={image} alt={item.product_name} style={{ width:size.imageSize, height:size.imageSize, borderRadius:size.borderRadius, objectFit:"cover", marginBottom:isMobile?"8px":"0" }} />
+                  <div style={{ flex:1, fontSize:size.fontSmall }}>
                     <div>{item.product_name}</div>
                     <small>Qty: {item.quantity}</small>
                     <small>Size: {item.selected_size}</small>
                     <small>Color: {color}</small>
                   </div>
-                  <b style={{ fontSize: size.fontMedium }}>₹{(item.price_at_addition||0)*(item.quantity||0)}</b>
+                  <b style={{ fontSize:size.fontMedium }}>₹{(item.price_at_addition||0)*(item.quantity||0)}</b>
                 </div>
               )
             })}
 
-            <div style={{ display:"flex", justifyContent:"space-between", margin:"6px 0", fontSize: size.fontSmall }}>
-              <span>Subtotal</span>
-              <span>₹{subtotal.toFixed(2)}</span>
-            </div>
+            {/* Summary breakdown */}
+            <div style={{ display:"flex", justifyContent:"space-between", fontSize:size.fontSmall, margin:"6px 0" }}><span>Subtotal</span><span>₹{subtotal.toFixed(2)}</span></div>
+            {appliedCoupon && couponDiscount>0 && <div style={{ display:"flex", justifyContent:"space-between", fontSize:size.fontSmall, color:"#10b981", margin:"6px 0" }}><span>Coupon Discount ({appliedCoupon.code})</span><span>-₹{couponDiscount.toFixed(2)}</span></div>}
+            <div style={{ display:"flex", justifyContent:"space-between", fontSize:size.fontSmall, margin:"6px 0" }}><span>CGST (9%)</span><span>₹{cgst.toFixed(2)}</span></div>
+            <div style={{ display:"flex", justifyContent:"space-between", fontSize:size.fontSmall, margin:"6px 0" }}><span>SGST (9%)</span><span>₹{sgst.toFixed(2)}</span></div>
+            {paymentMethod==="cod" && codCharge>0 && <div style={{ display:"flex", justifyContent:"space-between", fontSize:size.fontSmall, margin:"6px 0", color:"red" }}><span>COD Extra Charge*</span><span>₹{delivery.toFixed(2)}</span></div>}
 
-            {appliedCoupon && couponDiscount>0 && (
-              <div style={{ display:"flex", justifyContent:"space-between", margin:"6px 0", color:"#10b981", fontSize: size.fontSmall }}>
-                <span>Coupon Discount ({appliedCoupon.code})</span>
-                <span>-₹{couponDiscount.toFixed(2)}</span>
-              </div>
-            )}
+            <div style={{ display:"flex", justifyContent:"space-between", fontWeight:"700", fontSize:size.fontMedium, margin:"12px 0" }}><span>Total Amount</span><span>₹{totalAmount.toFixed(2)}</span></div>
 
-            {/* COD extra in summary */}
-            {paymentMethod === "cod" && codCharge > 0 && (
-              <div style={{ display:"flex", justifyContent:"space-between", margin:"6px 0", fontSize: size.fontSmall }}>
-                <span style={{ color: "red", fontWeight: "600" }}>COD Extra Charge*</span>
-                <span>₹{delivery.toFixed(2)}</span>
-              </div>
-            )}
+            <button style={{ width:"100%", padding:size.buttonPadding, background:"#4f46e5", color:"#fff", border:"none", borderRadius:size.borderRadius, fontSize:size.fontSmall, cursor:"pointer" }} onClick={placeOrder}>Place Order</button>
 
-            <div style={{ display:"flex", justifyContent:"space-between", fontWeight:"700", fontSize: size.fontMedium, margin:"12px 0" }}>
-              <span>Total Amount</span>
-              <span>₹{totalAmount.toFixed(2)}</span>
-            </div>
-
-            <button style={{ width:"100%", padding: size.buttonPadding, background:"#4f46e5", color:"#fff", border:"none", borderRadius:size.borderRadius, fontSize:size.fontSmall, cursor:"pointer" }} onClick={placeOrder}>Place Order</button>
-
-            <div style={{ textAlign:"center", marginTop:"8px", fontSize:size.fontSmall, color:"#999" }}>
-              <ShieldCheck size={16} /> Secure checkout
-            </div>
+            <div style={{ textAlign:"center", marginTop:"8px", fontSize:size.fontSmall, color:"#999" }}><ShieldCheck size={16} /> Secure checkout</div>
           </div>
         </div>
       </div>

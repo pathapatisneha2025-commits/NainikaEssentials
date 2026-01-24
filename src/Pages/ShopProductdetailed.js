@@ -53,58 +53,129 @@ const [showDescription, setShowDescription] = useState(false);
   const currentStock = selectedVariant?.stock || 0;
   const currentPrice = selectedVariant?.price || 0;
 
-  const handleAddToCart = async () => {
-    const user = JSON.parse(localStorage.getItem("adminUser"));
-    if (!selectedVariant) return alert("Please select a variant!");
-    if (qty > selectedVariant.stock) return alert(`Only ${selectedVariant.stock} items in stock`);
+ // --- ADD TO CART FUNCTION ---
+const handleAddToCart = async () => {
+  const user = JSON.parse(localStorage.getItem("adminUser"));
+  if (!selectedVariant) return alert("Please select a variant!");
+  if (qty > selectedVariant.stock) return alert(`Only ${selectedVariant.stock} items in stock`);
 
-    const productObj = {
-      product_id: product.id,
-      product_name: product.name,
-      selected_color: selectedVariant.color || "Default",
-      selected_size: selectedVariant.size || "Free Size",
-      quantity: qty,
-      price_at_addition: selectedVariant.price || 0,
-      product_images: [product.main_image, ...(product.thumbnails || [])],
-    };
+  const productObj = {
+    product_id: product.id,
+    product_name: product.name,
+    selected_color: selectedVariant.color || "Default",
+    selected_size: selectedVariant.size || "Free Size",
+    quantity: qty,
+    price_at_addition: selectedVariant.price || 0,
+    product_images: [product.main_image, ...(product.thumbnails || [])],
+  };
 
-    try {
-      const res = await fetch(`https://nainikaessentialsdatabas.onrender.com/products/reduce-stock`, {
+  try {
+    // Reduce stock
+    const res = await fetch(`https://nainikaessentialsdatabas.onrender.com/products/reduce-stock`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        product_id: product.id,
+        size: selectedVariant.size,
+        color: selectedVariant.color,
+        quantity: qty,
+      }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Failed to reduce stock");
+
+    setSelectedVariant(prev => ({ ...prev, stock: prev.stock - qty }));
+
+    // Add to user or guest cart
+    if (user && user.user_id) {
+      const cartRes = await fetch("https://nainikaessentialsdatabas.onrender.com/carts/add", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          product_id: product.id,
-          size: selectedVariant.size,
-          color: selectedVariant.color,
-          quantity: qty,
-        }),
+        body: JSON.stringify({ user_id: user.user_id, product: productObj }),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to reduce stock");
-
-      setSelectedVariant(prev => ({ ...prev, stock: prev.stock - qty }));
-
-      if (user && user.user_id) {
-        const cartRes = await fetch("https://nainikaessentialsdatabas.onrender.com/carts/add", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ user_id: user.user_id, product: productObj }),
-        });
-        if (!cartRes.ok) throw new Error("Failed to add to cart");
-      } else {
-        let guestCart = JSON.parse(localStorage.getItem("cart")) || [];
-        const index = guestCart.findIndex(item => item.product_id === product.id && item.selected_color === productObj.selected_color && item.selected_size === productObj.selected_size);
-        if (index > -1) guestCart[index].quantity += qty;
-        else guestCart.push(productObj);
-        localStorage.setItem("cart", JSON.stringify(guestCart));
-      }
-
-      alert(`${product.name} added to cart!`);
-      window.dispatchEvent(new Event("cartUpdated"));
-    } catch (err) {
-      alert(err.message);
+      if (!cartRes.ok) throw new Error("Failed to add to cart");
+    } else {
+      let guestCart = JSON.parse(localStorage.getItem("cart")) || [];
+      const index = guestCart.findIndex(
+        item =>
+          item.product_id === product.id &&
+          item.selected_color === productObj.selected_color &&
+          item.selected_size === productObj.selected_size
+      );
+      if (index > -1) guestCart[index].quantity += qty;
+      else guestCart.push(productObj);
+      localStorage.setItem("cart", JSON.stringify(guestCart));
     }
+
+    alert(`${product.name} added to cart!`);
+    window.dispatchEvent(new Event("cartUpdated"));
+  } catch (err) {
+    alert(err.message);
+  }
+};
+
+// --- BUY NOW FUNCTION (separate, no alert) ---
+const handleBuyNow = async () => {
+  const user = JSON.parse(localStorage.getItem("adminUser"));
+  if (!selectedVariant) return alert("Please select a variant!");
+  if (qty > selectedVariant.stock) return alert(`Only ${selectedVariant.stock} items in stock`);
+
+  const productObj = {
+    product_id: product.id,
+    product_name: product.name,
+    selected_color: selectedVariant.color || "Default",
+    selected_size: selectedVariant.size || "Free Size",
+    quantity: qty,
+    price_at_addition: selectedVariant.price || 0,
+    product_images: [product.main_image, ...(product.thumbnails || [])],
   };
+
+  try {
+    // Reduce stock
+    const res = await fetch(`https://nainikaessentialsdatabas.onrender.com/products/reduce-stock`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        product_id: product.id,
+        size: selectedVariant.size,
+        color: selectedVariant.color,
+        quantity: qty,
+      }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Failed to reduce stock");
+
+    setSelectedVariant(prev => ({ ...prev, stock: prev.stock - qty }));
+
+    // Add to user or guest cart
+    if (user && user.user_id) {
+      const cartRes = await fetch("https://nainikaessentialsdatabas.onrender.com/carts/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id: user.user_id, product: productObj }),
+      });
+      if (!cartRes.ok) throw new Error("Failed to add to cart");
+    } else {
+      let guestCart = JSON.parse(localStorage.getItem("cart")) || [];
+      const index = guestCart.findIndex(
+        item =>
+          item.product_id === product.id &&
+          item.selected_color === productObj.selected_color &&
+          item.selected_size === productObj.selected_size
+      );
+      if (index > -1) guestCart[index].quantity += qty;
+      else guestCart.push(productObj);
+      localStorage.setItem("cart", JSON.stringify(guestCart));
+    }
+
+    window.dispatchEvent(new Event("cartUpdated"));
+
+    // Redirect to checkout
+    window.location.href = "/checkout"; // or use navigate("/checkout") if using react-router's useNavigate
+  } catch (err) {
+    alert(err.message);
+  }
+};
 
   const incrementQty = () => qty < (selectedVariant?.stock || 0) ? setQty(qty + 1) : alert(`Only ${selectedVariant.stock} items in stock`);
   const decrementQty = () => qty > 1 && setQty(qty - 1);
@@ -175,9 +246,21 @@ const [showDescription, setShowDescription] = useState(false);
           </div>
 
           <div style={{ display: 'flex', gap: 12, marginBottom: 30 }}>
-            <button onClick={handleAddToCart} style={{ flex: 1, padding: 16, borderRadius: 10, border: '1px solid #2563eb', background: '#fff', color: '#2563eb', fontWeight: 600, cursor: 'pointer' }}>Add to Cart</button>
-            <button onClick={handleAddToCart} style={{ flex: 1, padding: 16, borderRadius: 10, border: 'none', background: '#2563eb', color: '#fff', fontWeight: 600, cursor: 'pointer' }}>Buy Now</button>
-          </div>
+  <button
+    onClick={handleAddToCart}
+    style={{ flex: 1, padding: 16, borderRadius: 10, border: '1px solid #2563eb', background: '#fff', color: '#2563eb', fontWeight: 600, cursor: 'pointer' }}
+  >
+    Add to Cart
+  </button>
+
+  <button
+    onClick={handleBuyNow}
+    style={{ flex: 1, padding: 16, borderRadius: 10, border: 'none', background: '#2563eb', color: '#fff', fontWeight: 600, cursor: 'pointer' }}
+  >
+    Buy Now
+  </button>
+</div>
+
 
           {/* --- PRODUCT DETAILS ACCORDION (Added from Screenshot 1) --- */}
           <div style={{ borderTop: '1px solid #eee' }}>
@@ -247,10 +330,7 @@ const [showDescription, setShowDescription] = useState(false);
 </div>
 
           
-          <div style={{ display: 'flex', gap: 20, marginTop: 15, fontSize: '12px', color: '#666' }}>
-            <span>7-day returns</span>
-            <span>COD available</span>
-          </div>
+         
 
         </div>
       </div>

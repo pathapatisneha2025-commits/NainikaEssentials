@@ -12,33 +12,28 @@ export default function NewArrivals() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await fetch(`${BASE_URL}/products/all`);
-        if (!res.ok) throw new Error("Failed to fetch products");
-        const data = await res.json();
+      const res = await fetch("https://nainikaessentialsdatabas.onrender.com/bestseller/all");
+      if (!res.ok) throw new Error("Failed to fetch featured products");
+      const data = await res.json();
+      const featuredProducts = data.filter(p => p.type === "newarrival");
+      setProducts(featuredProducts);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-        const mappedData = data.map((p) => ({
-          id: p.id,
-          brand: p.category || "ELAN COTTS",
-          name: p.name,
-          colors: "1 colour available",
-          image: p.main_image || p.images?.[0], 
-          discount: p.discount || "40%",
-          isBestSeller: p.is_bestseller,
-          rating: 4.0, 
-          reviews: 5,  
-        }));
-
-        setProducts(mappedData.slice(0, 5));
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
 
     fetchProducts();
   }, []);
-
+  // Function to render stars dynamically
+  const renderStars = (rating) => {
+    const fullStars = Math.floor(rating);
+    const halfStar = rating - fullStars >= 0.5;
+    const emptyStars = 5 - fullStars - (halfStar ? 1 : 0);
+    return "★".repeat(fullStars) + (halfStar ? "½" : "") + "☆".repeat(emptyStars);
+  };
   if (loading) return <div style={{ padding: "50px", textAlign: "center" }}>Loading...</div>;
 
   return (
@@ -160,28 +155,47 @@ export default function NewArrivals() {
           </button>
         </header>
 
-        <section className="product-grid">
-          {products.map((product) => (
-            <div key={product.id} className="product-card" onClick={() => navigate("/shop")}>
-              <div className="image-container">
-                {product.isBestSeller && <div className="best-seller-badge">Best Seller</div>}
-                {product.discount && <div className="discount-badge">{product.discount}<br/>OFF</div>}
-                <img src={product.image} alt={product.name} />
-                <div className="view-details-btn">View Details</div>
-              </div>
-              
-              <div className="product-info">
-                <div className="brand-name">{product.brand}</div>
-                <div className="product-name">{product.name}</div>
-                <div className="color-variants">{product.colors}</div>
-                
-                <div className="rating-row">
-                  <span className="stars">★★★★☆</span>
-                  <span className="rating-text">{product.rating} ({product.reviews})</span>
+          <section className="product-grid">
+          {products.map((product) => {
+            const reviewCount = product.reviews?.length || 0;
+            const averageRating = reviewCount
+              ? product.reviews.reduce((sum, r) => sum + r.rating, 0) / reviewCount
+              : 0;
+
+            return (
+              <div
+                key={product.id}
+                className="product-card"
+                onClick={() => navigate(`/product/${product.id}`)}
+              >
+                <div className="image-container">
+                  {product.isBestSeller && <div className="best-seller-badge">Best Seller</div>}
+                  {product.discount && (
+                    <div className="discount-badge">
+                      {product.discount}
+                      <br />
+                      OFF
+                    </div>
+                  )}
+                  <img src={product.main_image} alt={product.name} />
+                  <div className="view-details-btn">View Details</div>
+                </div>
+
+                <div className="product-info">
+                  <div className="brand-name">{product.brand}</div>
+                  <div className="product-name">{product.name}</div>
+                  <div className="color-variants">{product.colors}</div>
+
+                  <div className="rating-row">
+                    <span className="stars">{renderStars(averageRating)}</span>
+                    <span className="rating-text">
+                      {averageRating.toFixed(1)} ({reviewCount} reviews)
+                    </span>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </section>
       </div>
     </div>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams,useNavigate } from "react-router-dom";
 import { Share2, MessageCircle, ChevronDown, ChevronUp } from "lucide-react"; // Added Chevrons
 
 export default function ShopProductDetails() {
@@ -28,6 +28,7 @@ const [newReview, setNewReview] = useState({
 
 const [submitting, setSubmitting] = useState(false);
 
+const navigate = useNavigate();
 
 
   useEffect(() => {
@@ -236,7 +237,7 @@ const handleBuyNow = async () => {
     window.dispatchEvent(new Event("cartUpdated"));
 
     // Redirect to checkout
-    window.location.href = "/checkout"; // or use navigate("/checkout") if using useNavigate
+navigate("/checkout");
   } catch (err) {
     alert(err.message);
   }

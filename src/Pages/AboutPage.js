@@ -160,7 +160,7 @@ const AboutPage = () => {
           <section className="hero">
             <div className="hero-text">
               <span className="subtitle">ABOUT US</span>
-              <h1>Elan Cotts</h1>
+              <h1>ELAN COTTS</h1>
               <p>We are a modern clothing brand dedicated to crafting high-quality, stylish, and comfortable apparel for your everyday lifestyle.</p>
               <div className="tags">
                 <span className="tag">Premium Fabrics</span>

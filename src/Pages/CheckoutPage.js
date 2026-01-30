@@ -109,44 +109,73 @@ export default function CheckoutPage() {
   };
 
   // --- Generate Invoice ---
-  const generateInvoice = (preview = false) => {
-    const doc = new jsPDF();
-    doc.setFontSize(18);
-    doc.text("Invoice", 105, 20, { align: "center" });
+const generateInvoice = (preview = false) => {
+  const doc = new jsPDF();
+  doc.setFontSize(18);
+  doc.text("Invoice", 105, 20, { align: "center" });
 
+  let itemsToUse;
+  let orderId, addr, total;
+
+  if (preview) {
+    // Use current cart for preview
+    if (!cart.length) return alert("Cart is empty for preview!");
+    itemsToUse = cart.map(item => ({
+      product_name: item.product_name,
+      quantity: item.quantity,
+      size: item.selected_size,
+      color: typeof item.selected_color === "string" ? item.selected_color : item.selected_color?.color || "",
+      price: item.price_at_addition
+    }));
+    orderId = "PREVIEW_" + new Date().getTime();
+    addr = address;
+    total = totalAmount;
     doc.setFontSize(12);
-    doc.text(`Order ID: TEMP_${new Date().getTime()}`, 20, 40);
-    doc.text(`Name: ${address.name}`, 20, 50);
-    doc.text(`Phone: ${address.phone}`, 20, 60);
-    doc.text(`Address: ${address.street}, ${address.city}, ${address.state} - ${address.pincode}`, 20, 70);
+    doc.text(`Order ID: ${orderId}`, 20, 40);
+    doc.text(`Name: ${addr.name}`, 20, 50);
+    doc.text(`Phone: ${addr.phone}`, 20, 60);
+    doc.text(`Address: ${addr.street}, ${addr.city}, ${addr.state} - ${addr.pincode}`, 20, 70);
     doc.text(`Payment Method: ${paymentMethod.toUpperCase()}`, 20, 80);
-    doc.text(`Subtotal: ₹${subtotal.toFixed(2)}`, 20, 90);
-    if (appliedCoupon && couponDiscount > 0) doc.text(`Coupon (${appliedCoupon.code}): -₹${couponDiscount.toFixed(2)}`, 20, 100);
-    doc.text(`CGST (9%): ₹${cgst.toFixed(2)}`, 20, 110);
-    doc.text(`SGST (9%): ₹${sgst.toFixed(2)}`, 20, 120);
-    if (paymentMethod === "cod" && codCharge > 0) doc.text(`COD Extra: ₹${delivery.toFixed(2)}`, 20, 130);
-    doc.text(`Total Amount: ₹${totalAmount.toFixed(2)}`, 20, 140);
+    doc.text(`Total Amount: ₹${total.toFixed(2)}`, 20, 90);
+  } else {
+    // Use placed order for download
+    if (!orderPlaced) return alert("No order to generate invoice");
+    itemsToUse = typeof orderPlaced.items === "string" ? JSON.parse(orderPlaced.items) : orderPlaced.items;
+    orderId = orderPlaced.order_id;
+    addr = JSON.parse(orderPlaced.shipping_address);
+    total = orderPlaced.total_amount;
+    doc.setFontSize(12);
+    doc.text(`Order ID: ${orderId}`, 20, 40);
+    doc.text(`Name: ${addr.name}`, 20, 50);
+    doc.text(`Phone: ${addr.phone}`, 20, 60);
+    doc.text(`Address: ${addr.street}, ${addr.city}, ${addr.state} - ${addr.pincode}`, 20, 70);
+    doc.text(`Payment Method: ${orderPlaced.payment_method.toUpperCase()}`, 20, 80);
+    doc.text(`Total Amount: ₹${total}`, 20, 90);
+  }
 
-    doc.text("Items:", 20, 155);
-    let y = 165;
-    cart.forEach((item, index) => {
-      const color = typeof item.selected_color === "string" ? item.selected_color : item.selected_color?.color || "";
-      doc.text(
-        `${index + 1}. ${item.product_name} | Qty: ${item.quantity} | Size: ${item.selected_size} | Color: ${color} | ₹${(item.price_at_addition||0)*(item.quantity||0)}`,
-        20,
-        y
-      );
-      y += 10;
-      if (y > 280) { doc.addPage(); y = 20; }
-    });
-
-    if (preview) {
-      window.open(doc.output('bloburl'));
-    } else {
-      const orderId = orderPlaced?.order_id || new Date().getTime();
-      doc.save(`Invoice_${orderId}.pdf`);
+  // --- Items ---
+  doc.text("Items:", 20, 105);
+  let y = 115;
+  itemsToUse.forEach((item, index) => {
+    doc.text(
+      `${index + 1}. ${item.product_name} | Qty: ${item.quantity} | Size: ${item.size} | Color: ${item.color} | ₹${item.price * item.quantity}`,
+      20,
+      y
+    );
+    y += 10;
+    if (y > 280) {
+      doc.addPage();
+      y = 20;
     }
-  };
+  });
+
+  if (preview) {
+    window.open(doc.output("bloburl"));
+  } else {
+    doc.save(`Invoice_${orderId}.pdf`);
+  }
+};
+
 
   // --- Place order ---
   const placeOrder = async () => {

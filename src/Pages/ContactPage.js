@@ -12,7 +12,27 @@ const ContactPage = () => {
     Phone: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l2.27-2.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>,
     Mail: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>,
     MapPin: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>,
-    Support: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 0 1 18 0"/><path d="M12 21a9 9 0 0 1-9-9"/><circle cx="12" cy="12" r="3"/></svg>
+    Support: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 0 1 18 0"/><path d="M12 21a9 9 0 0 1-9-9"/><circle cx="12" cy="12" r="3"/></svg>,
+    WhatsApp: () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M20.52 3.48A11.91 11.91 0 0 0 12.04 0C5.42 0 .12 5.3.12 11.82c0 2.08.54 4.12 1.56 5.92L0 24l6.45-1.68a11.86 11.86 0 0 0 5.6 1.43h.01c6.62 0 11.92-5.3 11.92-11.82a11.9 11.9 0 0 0-3.46-8.45Zm-8.48 18.1a9.9 9.9 0 0 1-5.05-1.38l-.36-.21-3.83 1 1.02-3.72-.23-.38a9.86 9.86 0 1 1 18.45-5.02c0 5.45-4.45 9.71-10 9.71Zm5.5-7.42c-.3-.15-1.77-.87-2.04-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.95 1.17-.17.2-.35.22-.65.07-.3-.15-1.25-.46-2.38-1.47-.88-.79-1.47-1.77-1.65-2.07-.17-.3-.02-.46.13-.6.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.67-1.62-.92-2.22-.24-.57-.48-.5-.67-.5h-.57c-.2 0-.52.07-.8.37-.27.3-1.05 1.02-1.05 2.5s1.07 2.9 1.22 3.1c.15.2 2.1 3.2 5.1 4.49.71.3 1.27.48 1.7.61.71.22 1.36.19 1.87.12.57-.08 1.77-.72 2.02-1.42.25-.7.25-1.3.17-1.42-.07-.12-.27-.2-.57-.35Z"/>
+  </svg>
+),
+
+Instagram: () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+    <circle cx="12" cy="12" r="3.5" />
+    <circle cx="17.5" cy="6.5" r="1" />
+  </svg>
+),
+
+Facebook: () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M22.675 0h-21.35C.6 0 0 .6 0 1.325v21.351C0 23.4.6 24 1.325 24h11.495v-9.294H9.691V11.01h3.129V8.309c0-3.1 1.894-4.788 4.66-4.788 1.325 0 2.463.099 2.795.143v3.24h-1.918c-1.505 0-1.797.716-1.797 1.767v2.317h3.59l-.467 3.696h-3.123V24h6.127C23.4 24 24 23.4 24 22.676V1.325C24 .6 23.4 0 22.675 0z"/>
+  </svg>
+),
+
   };
 
   // Submit form using fetch
@@ -184,11 +204,41 @@ const ContactPage = () => {
           <div className="contact-grid">
             {/* Info Section */}
             <div className="info-card">
-              <h2>Elan Cotts</h2>
-              <div className="contact-method"><div className="icon-box"><Icons.Phone /></div><div className="method-text"><h4>Call Us</h4><p>9347166184</p></div></div>
-              <div className="contact-method"><div className="icon-box"><Icons.Mail /></div><div className="method-text"><h4>Email Us</h4><p>support@elancotts.com</p></div></div>
-              <div className="contact-method"><div className="icon-box"><Icons.MapPin /></div><div className="method-text"><h4>Visit Us</h4><p>Hyderabad, Telangana.</p></div></div>
-              <div className="trust-badges">
+              <h2>ElAN COTTS</h2>
+<div className="contact-method">
+  <div className="icon-box"><Icons.WhatsApp /></div>
+  <div className="method-text">
+    <h4>WhatsApp</h4>
+    <p>
+      <a href="https://wa.me/918332992789" target="_blank" rel="noreferrer">
+        Chat with us
+      </a>
+    </p>
+  </div>
+</div>              <div className="contact-method"><div className="icon-box"><Icons.Mail /></div><div className="method-text"><h4>Email Us</h4><p> Nainika@nainikaessentials.com</p></div></div>
+<div className="contact-method">
+  <div className="icon-box"><Icons.Instagram /></div>
+  <div className="method-text">
+    <h4>Instagram</h4>
+    <p>
+      <a href="https://instagram.com/elancotts" target="_blank" rel="noreferrer">
+        @elancotts
+      </a>
+    </p>
+  </div>
+</div>
+
+<div className="contact-method">
+  <div className="icon-box"><Icons.Facebook /></div>
+  <div className="method-text">
+    <h4>Facebook</h4>
+    <p>
+      <a href="https://facebook.com/elancotts" target="_blank" rel="noreferrer">
+        Elan Cotts
+      </a>
+    </p>
+  </div>
+</div>              <div className="trust-badges">
                 <div className="badge-item"><Icons.Support /> 24/7 Customer Support</div>
                 <div className="badge-item"><Icons.Support /> Secure & Reliable Communication</div>
                 <div className="badge-item"><Icons.Support /> Trusted Online Store</div>

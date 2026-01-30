@@ -84,6 +84,30 @@ const [sortBy, setSortBy] = useState("recommended");
         .mobile-action-bar { display: none; justify-content: space-between; align-items: center; margin-bottom: 20px; gap: 10px; }
         .btn-filter { background: #5d5fef; color: white; border: none; padding: 10px 18px; border-radius: 10px; display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14px; }
         .mobile-sort-select { border: 1px solid #e2e8f0; padding: 10px; border-radius: 10px; background: white; font-size: 14px; flex-grow: 1; }
+.mobile-action-bar {
+  display: none; /* hidden on desktop */
+  justify-content: space-between; /* Filters left, sort right */
+  align-items: center;
+  margin-bottom: 20px;
+  gap: 10px;
+}
+
+.mobile-sort-select {
+  border: 1px solid #e2e8f0;
+  padding: 10px;
+  border-radius: 10px;
+  background: white;
+  font-size: 14px;
+  flex-grow: 1;
+}
+
+/* Show action bar on mobile */
+@media (max-width: 900px) {
+  .mobile-action-bar {
+    display: flex;
+  }
+  .sidebar-section { display: none !important; } /* hide desktop sidebar */
+}
 
         @media(max-width: 900px) { 
           .sidebar-section { display: none !important; } 
@@ -119,6 +143,8 @@ const [sortBy, setSortBy] = useState("recommended");
             </div>
           </aside>
 
+
+
           <main className="content-section">
 <div style={{
   display: "flex",
@@ -140,7 +166,81 @@ const [sortBy, setSortBy] = useState("recommended");
   </select>
 </div>
 
+<div className="mobile-action-bar">
+  <button
+    className="btn-filter"
+    onClick={() => setShowMobileFilters(true)}
+  >
+    Filters
+  </button>
+</div>
+{showMobileFilters && (
+  <div
+    style={{
+      position: "fixed",
+      inset: 0,
+      background: "rgba(0,0,0,0.4)",
+      zIndex: 1000,
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+      padding: 10,
+    }}
+    onClick={() => setShowMobileFilters(false)}
+  >
+    <div
+      style={{
+        background: "#fff",
+        width: "90%",
+        maxWidth: 320,
+        height: "80%",
+        borderRadius: 20,
+        padding: 20,
+        overflowY: "auto",
+        display: "flex",
+        flexDirection: "column",
+      }}
+      onClick={(e) => e.stopPropagation()}
+    >
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+        <h3>Filters</h3>
+        <button 
+          onClick={() => setShowMobileFilters(false)} 
+          style={{ background: 'none', border: 'none', fontSize: 18, cursor: 'pointer' }}
+        >
+          ✕
+        </button>
+      </div>
 
+      <button 
+        style={{
+          width:'100%',
+          padding: 12,
+          background:'#5d5fef',
+          color:'#fff',
+          border:'none',
+          borderRadius:10,
+          fontWeight:600,
+          marginBottom:20
+        }}
+        onClick={() => { setSelectedCategory("All"); setShowMobileFilters(false); }}
+      >
+        All Categories
+      </button>
+
+      {categories.map(cat => (
+        <div 
+          key={cat} 
+          className={`cat-item ${selectedCategory === cat ? 'active' : ''}`} 
+          onClick={() => { setSelectedCategory(cat); setShowMobileFilters(false); }}
+          style={{ marginBottom: 6 }}
+        >
+          {cat} <ChevronRight size={14} />
+        </div>
+      ))}
+    </div>
+  </div>
+)}
             <div className="header-text">
               <h1>Shop Our Collection</h1>
               <p>Select a category to explore products</p>
@@ -160,6 +260,9 @@ const [sortBy, setSortBy] = useState("recommended");
 </div>
 
 
+
+
+
             <div className="product-grid">
               {products
     .filter(p =>
@@ -171,7 +274,7 @@ const [sortBy, setSortBy] = useState("recommended");
         return (a.price || 0) - (b.price || 0);
       }
       return 0; // recommended
-      
+
     })
                 .map(p => (
                   <div key={p.id} className="product-card" onClick={() => handleProductClick(p)}>

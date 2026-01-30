@@ -213,7 +213,7 @@ const handleProfileClick = () => {
 
   const handleViewOffers = () => {
     setShowPopup(false);
-    navigate("/todaysorders");
+    navigate("/todaysoffers");
   };
 const continueAsGuest = () => {
   let guestId = localStorage.getItem("guestId");

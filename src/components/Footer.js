@@ -111,6 +111,18 @@ const Footer = () => {
           font-size: 0.8rem;
           letter-spacing: 0.5px;
         }
+          .disabled-icon {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.disabled-icon:hover {
+  background-color: #fff; /* prevent hover effect */
+  color: #444;
+  transform: none;
+  border-color: #e0e0e0;
+}
+
 
         @media (max-width: 992px) {
           .footer-container { grid-template-columns: 1fr 1fr; gap: 30px; }
@@ -165,18 +177,42 @@ const Footer = () => {
         </div>
 
         {/* Column 4: Follow Us */}
-        <div className="footer-column">
-          <h3>Follow Us</h3>
-          <p style={{ fontSize: '0.85rem', color: '#666', marginBottom: '15px' }}>
-            Stay updated with our latest collections.
-          </p>
-          <div className="social-links">
-            <a href="#" className="social-icon"><FiFacebook /></a>
-            <a href="#" className="social-icon"><FiInstagram /></a>
-            <a href="#" className="social-icon"><FiTwitter /></a>
-            <a href="#" className="social-icon"><FiLinkedin /></a>
-          </div>
-        </div>
+        <div className="social-links">
+  <a 
+    href="https://www.facebook.com/YourPage" 
+    className="social-icon" 
+    target="_blank" 
+    rel="noopener noreferrer"
+  >
+    <FiFacebook />
+  </a>
+  
+  <a 
+    href="https://www.instagram.com/YourPage" 
+    className="social-icon" 
+    target="_blank" 
+    rel="noopener noreferrer"
+  >
+    <FiInstagram />
+  </a>
+  
+  <span 
+    className="social-icon disabled-icon" 
+    title="Twitter currently disabled"
+  >
+    <FiTwitter />
+  </span>
+  
+  <a 
+    href="https://www.linkedin.com/in/YourPage" 
+    className="social-icon" 
+    target="_blank" 
+    rel="noopener noreferrer"
+  >
+    <FiLinkedin />
+  </a>
+</div>
+
       </div>
 
       <div className="footer-bottom">

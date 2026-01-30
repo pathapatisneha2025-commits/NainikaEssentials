@@ -17,6 +17,18 @@ const [showDescription, setShowDescription] = useState(false);
   // New states for the UI sections in screenshots
   const [showDetails, setShowDetails] = useState(true);
   const [showReviews, setShowReviews] = useState(true);
+const [reviews, setReviews] = useState([]);
+const [averageRating, setAverageRating] = useState(0);
+
+const [newReview, setNewReview] = useState({
+  name: "",
+  comment: "",
+  rating: 0,
+});
+
+const [submitting, setSubmitting] = useState(false);
+
+
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -24,6 +36,7 @@ const [showDescription, setShowDescription] = useState(false);
         const res = await fetch(`https://nainikaessentialsdatabas.onrender.com/products/${productId}`);
         const data = await res.json();
         setProduct(data);
+
 
         if (data?.variants?.length > 0) {
           setSelectedVariant(data.variants[0]);
@@ -45,6 +58,68 @@ const [showDescription, setShowDescription] = useState(false);
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+const submitReview = async () => {
+  if (!newReview.name || !newReview.comment || !newReview.rating) {
+    alert("Please fill all fields and rating");
+    return;
+  }
+
+  try {
+    setSubmitting(true);
+
+    const res = await fetch(`https://nainikaessentialsdatabas.onrender.com/products/${product.id}/review`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          product_id: product.id,
+          name: newReview.name,
+          comment: newReview.comment,
+          rating: newReview.rating,
+        }),
+      }
+    );
+
+    const savedReview = await res.json();
+
+    const updatedReviews = [savedReview, ...reviews];
+    setReviews(updatedReviews);
+
+    const avg =
+      updatedReviews.reduce((sum, r) => sum + r.rating, 0) /
+      updatedReviews.length;
+    setAverageRating(avg);
+
+    setNewReview({ name: "", comment: "", rating: 0 });
+    alert("Review added successfully!");
+  } catch (err) {
+    alert("Failed to submit review");
+  } finally {
+    setSubmitting(false);
+  }
+};
+useEffect(() => {
+  const fetchReviews = async () => {
+    try {
+      const res = await fetch(`https://nainikaessentialsdatabas.onrender.com/products/${productId}/reviews`);
+      const data = await res.json();
+
+      setReviews(data || []);
+
+      if (data && data.length > 0) {
+        const avg =
+          data.reduce((sum, r) => sum + r.rating, 0) / data.length;
+        setAverageRating(avg);
+      } else {
+        setAverageRating(0);
+      }
+    } catch (err) {
+      console.error("Failed to fetch reviews", err);
+    }
+  };
+
+  fetchReviews();
+}, [productId]);
 
   if (loading) return <p style={{ padding: 100, textAlign: "center" }}>Loading product...</p>;
   if (!product) return <p style={{ padding: 100, textAlign: "center" }}>Product not found</p>;
@@ -223,6 +298,11 @@ const handleBuyNow = async () => {
       <>₹{selectedVariant?.price}</>
     )}
   </span>
+
+   <p style={{ color: "#f59e0b", fontWeight: 600 }}>
+            Average Rating: {averageRating.toFixed(1)} ★
+          </p>
+
 </div>
 
 
@@ -352,6 +432,7 @@ const handleBuyNow = async () => {
 )}
 
 </div>
+ 
 
           
          
@@ -359,10 +440,124 @@ const handleBuyNow = async () => {
         </div>
       </div>
 
-      {/* --- CUSTOMER REVIEWS SECTION (Added from Screenshot 2) --- */}
-      <div style={{ marginTop: 60, borderTop: '1px solid #eee', paddingTop: 40 }}>
-        <h2 style={{ fontSize: '22px', fontWeight: '600', marginBottom: 20 }}>Customer Reviews</h2>
-        <p style={{ color: '#666', fontSize: '14px' }}>No reviews yet. Be the first to review this product.</p>
+      {/* --- REVIEWS ACCORDION --- */}
+<div style={{ borderTop: "1px solid #eee", marginTop: 30 }}>
+  <div
+    onClick={() => setShowReviews(prev => !prev)}
+    style={{
+      display: "flex",
+      justifyContent: "space-between",
+      padding: "15px 0",
+      cursor: "pointer",
+      alignItems: "center"
+    }}
+  >
+    <span style={{ fontWeight: 600 }}>Reviews</span>
+    {showReviews ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+  </div>
+
+  {showReviews && (
+    <>
+      <p style={{ color: "#f59e0b", fontWeight: 600 }}>
+        Average Rating: {averageRating.toFixed(1)}{" "}
+        {Array.from({ length: 5 }).map((_, idx) => (
+          <span key={idx}>
+            {idx < Math.round(averageRating) ? "★" : "☆"}
+          </span>
+        ))}
+      </p>
+
+      <h2 style={{ fontSize: 22, fontWeight: 600, marginBottom: 20 }}>
+        Customer Reviews
+      </h2>
+
+      {reviews.length ? (
+        reviews.map((r, i) => (
+          <div
+            key={i}
+            style={{
+              marginBottom: 20,
+              padding: 12,
+              border: "1px solid #eee",
+              borderRadius: 8
+            }}
+          >
+            <p style={{ fontWeight: 600 }}>
+              {r.name}{" "}
+              <span style={{ fontWeight: 400, color: "#666", fontSize: 12 }}>
+                ({new Date(r.created_at || r.date).toLocaleDateString()})
+              </span>
+            </p>
+
+            <div style={{ color: "#FFD700", marginBottom: 6 }}>
+              {Array.from({ length: 5 }).map((_, idx) => (
+                <span key={idx}>{idx < r.rating ? "★" : "☆"}</span>
+              ))}
+            </div>
+
+            <p>{r.comment}</p>
+          </div>
+        ))
+      ) : (
+        <p style={{ color: "#666", fontSize: 14 }}>
+          No reviews yet. Be the first!
+        </p>
+      )}
+
+      {/* WRITE REVIEW FORM (your existing code stays) */}
+    </>
+  )}
+
+
+
+        <div style={{ marginTop: 30 }}>
+          <h3 style={{ fontWeight: 600, marginBottom: 10 }}>Write a Review</h3>
+          <input
+            type="text"
+            placeholder="Your Name"
+            value={newReview.name}
+            onChange={(e) => setNewReview({ ...newReview, name: e.target.value })}
+style={{
+  width: "100%",
+  padding: "10px 12px",
+  marginBottom: 10,
+  borderRadius: 8,
+  border: "1px solid #ddd",
+  fontSize: 14,
+}}
+          />
+          <textarea
+            placeholder="Write your review"
+            value={newReview.comment}
+            onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })}
+style={{
+  width: "100%",
+  padding: "10px 12px",
+  marginBottom: 10,
+  borderRadius: 8,
+  border: "1px solid #ddd",
+  fontSize: 14,
+}}
+          />
+          <div style={{ display: "flex", gap: 5, marginBottom: 10 }}>
+            {Array.from({ length: 5 }).map((_, idx) => (
+              <span
+                key={idx}
+                onClick={() => setNewReview((prev) => ({ ...prev, rating: idx + 1 }))}
+                style={{ cursor: "pointer", fontSize: 24, color: idx < newReview.rating ? "#FFD700" : "#ddd" }}
+              >
+                ★
+              </span>
+            ))}
+          </div>
+          <button
+            onClick={submitReview}
+            disabled={submitting}
+            style={{ padding: 12, borderRadius: 8, background: "#2563eb", color: "#fff", border: "none", cursor: "pointer" }}
+          >
+            {submitting ? "Submitting..." : "Submit Review"}
+          </button>
+        </div>
       </div>
 
       {/* Floating Message Icon */}

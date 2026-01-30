@@ -7,6 +7,9 @@ const ShopPage = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+const [sortBy, setSortBy] = useState("recommended");
+
   const navigate = useNavigate();
 
   const categories = ["Shirts", "Clothing", "Hoddies", "Pants"];
@@ -17,15 +20,23 @@ const ShopPage = () => {
         const res = await fetch('https://nainikaessentialsdatabas.onrender.com/products/all');
         const data = await res.json();
 
-        const mappedProducts = data.map(p => ({
-          id: p.id,
-          name: p.name,
-          img: p.main_image,
-        discount: p.discount !== null && p.discount !== undefined ? `${p.discount}%` : "10%", // add % and fallback to 10%
-          rating: 4.0,
-          reviews: 5,
-          category: p.category.charAt(0).toUpperCase() + p.category.slice(1)
-        }));
+        const mappedProducts = data.map(p => {
+  // get lowest price from variants
+  const prices = p.variants?.map(v => v.price) || [];
+  const minPrice = prices.length ? Math.min(...prices) : 0;
+
+  return {
+    id: p.id,
+    name: p.name,
+    img: p.main_image,
+    discount: p.discount ? `${p.discount}%` : "10%",
+    rating: 4.0,
+    reviews: 5,
+    category: p.category.charAt(0).toUpperCase() + p.category.slice(1),
+    price: minPrice, // ⭐ IMPORTANT
+  };
+});
+
 
         setProducts(mappedProducts);
         setLoading(false);
@@ -109,29 +120,59 @@ const ShopPage = () => {
           </aside>
 
           <main className="content-section">
-            <div className="mobile-action-bar">
-              <button className="btn-filter" onClick={() => setShowMobileFilters(true)}>
-                <Menu size={18} /> Filters
-              </button>
-              <select className="mobile-sort-select">
-                <option>Recommended</option>
-                <option>Price: Low to High</option>
-              </select>
-            </div>
+<div style={{
+  display: "flex",
+  justifyContent: "flex-end",
+  marginBottom: 16
+}}>
+  <select
+    value={sortBy}
+    onChange={(e) => setSortBy(e.target.value)}
+    style={{
+      padding: "10px 14px",
+      borderRadius: 10,
+      border: "1px solid #e2e8f0",
+      fontSize: 14
+    }}
+  >
+    <option value="recommended">Recommended</option>
+    <option value="low-high">Price: Low to High</option>
+  </select>
+</div>
+
 
             <div className="header-text">
               <h1>Shop Our Collection</h1>
               <p>Select a category to explore products</p>
             </div>
 
-            <div className="search-wrapper">
-              <input type="text" placeholder="Search products..." />
-              <Search size={18} style={{position:'absolute', right:12, top:12, color:'#94a3b8'}} />
-            </div>
+           <div className="search-wrapper">
+  <input
+    type="text"
+    placeholder="Search products..."
+    value={searchTerm}
+    onChange={(e) => setSearchTerm(e.target.value)}
+  />
+  <Search
+    size={18}
+    style={{ position: "absolute", right: 12, top: 12, color: "#94a3b8" }}
+  />
+</div>
+
 
             <div className="product-grid">
               {products
-                .filter(p => selectedCategory === "All" || p.category === selectedCategory)
+    .filter(p =>
+      (selectedCategory === "All" || p.category === selectedCategory) &&
+      p.name.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .sort((a, b) => {
+      if (sortBy === "low-high") {
+        return (a.price || 0) - (b.price || 0);
+      }
+      return 0; // recommended
+      
+    })
                 .map(p => (
                   <div key={p.id} className="product-card" onClick={() => handleProductClick(p)}>
                     <div className="img-box">

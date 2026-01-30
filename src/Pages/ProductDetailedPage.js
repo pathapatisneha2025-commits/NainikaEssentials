@@ -63,7 +63,10 @@ setReviews(Array.isArray(data.reviews) ? data.reviews : []);
 
   const isMobile = width < 768;
   const currentStock = selectedVariant?.stock || 0;
-  const currentPrice = selectedVariant?.price || 0;
+// Calculate discounted price
+const discount = parseFloat(product.discount || 0); // discount % from product
+const originalPrice = selectedVariant?.price || 0;
+const currentPrice = Math.round(originalPrice * (1 - discount / 100));
 
   const incrementQty = () => qty < currentStock && setQty(qty + 1);
   const decrementQty = () => qty > 1 && setQty(qty - 1);
@@ -78,11 +81,13 @@ const handleAddToCart = async () => {
   // Determine userId (guest or logged-in)
   const user = JSON.parse(localStorage.getItem("adminUser"));
   let userId = user?.user_id;
+
+  // Guest user
   if (!userId) {
     let guestId = localStorage.getItem("guestId");
     if (!guestId) {
       guestId = `guest_${Date.now()}`;
-      localStorage.setItem("guestId", guestId);
+      localStorage.setItem("guestId", guestId); // only for consistency
     }
     userId = guestId;
   }
@@ -93,13 +98,13 @@ const handleAddToCart = async () => {
     selected_color: selectedVariant.color || "Default",
     selected_size: selectedVariant.size || "Free Size",
     quantity: qty,
-    price_at_addition: selectedVariant.price || 0,
+    price_at_addition: currentPrice,
     product_images: [product.main_image, ...(product.thumbnails || [])],
   };
 
   try {
-    // Reduce stock
-    const res = await fetch(`https://nainikaessentialsdatabas.onrender.com/bestseller/reduce-stock`, {
+    // Reduce stock in DB
+    const resStock = await fetch(`https://nainikaessentialsdatabas.onrender.com/bestseller/reduce-stock`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -109,28 +114,17 @@ const handleAddToCart = async () => {
         quantity: qty,
       }),
     });
-    if (!res.ok) throw new Error("Failed to reduce stock");
+    if (!resStock.ok) throw new Error("Failed to reduce stock");
+
     setSelectedVariant(prev => ({ ...prev, stock: prev.stock - qty }));
 
-    // Add to cart
-    if (user && user.user_id) {
-      await fetch("https://nainikaessentialsdatabas.onrender.com/carts/add", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user_id: user.user_id, product: productObj }),
-      });
-    } else {
-      let guestCart = JSON.parse(localStorage.getItem("cart")) || [];
-      const index = guestCart.findIndex(
-        item =>
-          item.product_id === product.id &&
-          item.selected_color === productObj.selected_color &&
-          item.selected_size === productObj.selected_size
-      );
-      if (index > -1) guestCart[index].quantity += qty;
-      else guestCart.push(productObj);
-      localStorage.setItem("cart", JSON.stringify(guestCart));
-    }
+    // Add cart to DB (guest or logged-in)
+    const resCart = await fetch("https://nainikaessentialsdatabas.onrender.com/carts/add", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ user_id: userId, product: productObj }),
+    });
+    if (!resCart.ok) throw new Error("Failed to add to cart");
 
     alert(`${product.name} added to cart!`);
     window.dispatchEvent(new Event("cartUpdated"));
@@ -138,6 +132,8 @@ const handleAddToCart = async () => {
     alert(err.message);
   }
 };
+
+
 
 const handleBuyNow = async () => {
   await handleAddToCart(); // Add to cart first
@@ -181,7 +177,10 @@ const handleBuyNow = async () => {
   const averageRating = reviews.length ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length : 0;
 
   // Make sure description is always a string
-  const productDescription = typeof product.description === "string" ? product.description : product.description?.long || "";
+const productDescription =
+  typeof product.description === "string"
+    ? product.description
+    : "";
 
   return (
     <div style={{ maxWidth: 1200, margin: "0 auto", padding: 20, fontFamily: "sans-serif" }}>
@@ -232,7 +231,14 @@ const handleBuyNow = async () => {
             </div>
           </div>
           <p style={{ color: "#666", margin: "10px 0" }}>Category: {product.category}</p>
-          <p style={{ fontSize: 24, fontWeight: 700 }}>₹{currentPrice}</p>
+<p style={{ fontSize: 24, fontWeight: 700 }}>
+  ₹{currentPrice}
+  {discount > 0 && (
+    <span style={{ textDecoration: "line-through", color: "#999", fontSize: 14, marginLeft: 8 }}>
+      ₹{originalPrice}
+    </span>
+  )}
+</p>
           <p style={{ color: "#f59e0b", fontWeight: 600 }}>
             Average Rating: {averageRating.toFixed(1)} ★
           </p>
@@ -304,27 +310,40 @@ const handleBuyNow = async () => {
           <span style={{ fontWeight: 600 }}>Product Details</span>
           {showDetails ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
         </div>
-        {showDetails && (
-          <div style={{ paddingBottom: 15 }}>
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "14px" }}>
-              <tbody>
-                {[
-                  { label: "Brand", value: "Elan Cotts" },
-                  { label: "Fabric", value: "Fleece" },
-                  { label: "Fit", value: "Relaxed Fit" },
-                  { label: "Sleeve", value: "Full Sleeve" },
-                  { label: "Occasion", value: "Casual" },
-                  { label: "Made In", value: "India" },
-                ].map((item, i) => (
-                  <tr key={i} style={{ borderBottom: "1px solid #f9f9f9" }}>
-                    <td style={{ padding: "8px 0", color: "#666" }}>{item.label}</td>
-                    <td style={{ padding: "8px 0", textAlign: "right", fontWeight: 500 }}>{item.value}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+       {showDetails && (
+  <div style={{ paddingBottom: 15 }}>
+    {Array.isArray(product.product_details) && product.product_details.length > 0 ? (
+      <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
+        <tbody>
+          {product.product_details.map((item, i) => {
+            const fallbackLabels = [
+              "Brand",
+              "Fabric",
+              "Fit",
+              "Sleeve",
+              "Occasion",
+              "Made In",
+            ];
+
+            return (
+              <tr key={i} style={{ borderBottom: "1px solid #f1f5f9" }}>
+                <td style={{ padding: "8px 0", color: "#64748b" }}>
+                  {item.label || fallbackLabels[i] || `Detail ${i + 1}`}
+                </td>
+                <td style={{ padding: "8px 0", textAlign: "right", fontWeight: 500 }}>
+                  {item.value}
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    ) : (
+      <p style={{ fontSize: 14, color: "#666" }}>No product details available.</p>
+    )}
+  </div>
+)}
+
       </div>
 
       {/* DESCRIPTION ACCORDION */}
@@ -336,15 +355,17 @@ const handleBuyNow = async () => {
           <span style={{ fontWeight: 600 }}>Description</span>
           {showDescription ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
         </div>
-        {showDescription && (
-          <div style={{ padding: "10px 0", fontSize: "14px", color: "#666", lineHeight: 1.6 }}>
-            <p>{productDescription}</p>
-            <div style={{ display: "flex", gap: 20, marginTop: 15, fontSize: 12, color: "#666" }}>
-              <span>7-day returns</span>
-              <span>COD available</span>
-            </div>
-          </div>
-        )}
+     {showDescription && (
+  <div style={{ padding: "10px 0", fontSize: 14, color: "#666", lineHeight: 1.6 }}>
+    <p style={{ whiteSpace: "pre-line" }}>{productDescription}</p>
+
+    <div style={{ display: "flex", gap: 20, marginTop: 15, fontSize: 12 }}>
+      <span>7-day returns</span>
+      <span>COD available</span>
+    </div>
+  </div>
+)}
+
       </div>
       </div>
         </div>

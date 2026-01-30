@@ -51,11 +51,27 @@ const [showDescription, setShowDescription] = useState(false);
 
   const isMobile = width < 768;
   const currentStock = selectedVariant?.stock || 0;
-  const currentPrice = selectedVariant?.price || 0;
+const currentPrice = selectedVariant?.price || 0;
+const discountedPrice = product.discount
+  ? Math.round(currentPrice - (currentPrice * Number(product.discount)) / 100)
+  : currentPrice;
 
- // --- ADD TO CART FUNCTION ---
+// --- Utility: Get user or guest ID ---
+const getUserId = () => {
+  const storedUser = JSON.parse(localStorage.getItem("adminUser") || "{}");
+  if (storedUser.user_id) return storedUser.user_id;
+
+  let guestId = localStorage.getItem("guestId");
+  if (!guestId) {
+    guestId = `guest_${Date.now()}`;
+    localStorage.setItem("guestId", guestId);
+  }
+  return guestId;
+};
+
+// --- ADD TO CART FUNCTION ---
 const handleAddToCart = async () => {
-  const user = JSON.parse(localStorage.getItem("adminUser"));
+  const userId = getUserId();
   if (!selectedVariant) return alert("Please select a variant!");
   if (qty > selectedVariant.stock) return alert(`Only ${selectedVariant.stock} items in stock`);
 
@@ -65,7 +81,7 @@ const handleAddToCart = async () => {
     selected_color: selectedVariant.color || "Default",
     selected_size: selectedVariant.size || "Free Size",
     quantity: qty,
-    price_at_addition: selectedVariant.price || 0,
+    price_at_addition: product.discount ? discountedPrice : selectedVariant.price,
     product_images: [product.main_image, ...(product.thumbnails || [])],
   };
 
@@ -83,29 +99,16 @@ const handleAddToCart = async () => {
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || "Failed to reduce stock");
-
     setSelectedVariant(prev => ({ ...prev, stock: prev.stock - qty }));
 
-    // Add to user or guest cart
-    if (user && user.user_id) {
-      const cartRes = await fetch("https://nainikaessentialsdatabas.onrender.com/carts/add", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user_id: user.user_id, product: productObj }),
-      });
-      if (!cartRes.ok) throw new Error("Failed to add to cart");
-    } else {
-      let guestCart = JSON.parse(localStorage.getItem("cart")) || [];
-      const index = guestCart.findIndex(
-        item =>
-          item.product_id === product.id &&
-          item.selected_color === productObj.selected_color &&
-          item.selected_size === productObj.selected_size
-      );
-      if (index > -1) guestCart[index].quantity += qty;
-      else guestCart.push(productObj);
-      localStorage.setItem("cart", JSON.stringify(guestCart));
-    }
+    // Add to backend cart (user or guest)
+    const cartRes = await fetch(`https://nainikaessentialsdatabas.onrender.com/carts/add`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ user_id: userId, product: productObj }),
+    });
+
+    if (!cartRes.ok) throw new Error("Failed to add to cart");
 
     alert(`${product.name} added to cart!`);
     window.dispatchEvent(new Event("cartUpdated"));
@@ -114,9 +117,9 @@ const handleAddToCart = async () => {
   }
 };
 
-// --- BUY NOW FUNCTION (separate, no alert) ---
+// --- BUY NOW FUNCTION ---
 const handleBuyNow = async () => {
-  const user = JSON.parse(localStorage.getItem("adminUser"));
+  const userId = getUserId();
   if (!selectedVariant) return alert("Please select a variant!");
   if (qty > selectedVariant.stock) return alert(`Only ${selectedVariant.stock} items in stock`);
 
@@ -126,7 +129,7 @@ const handleBuyNow = async () => {
     selected_color: selectedVariant.color || "Default",
     selected_size: selectedVariant.size || "Free Size",
     quantity: qty,
-    price_at_addition: selectedVariant.price || 0,
+    price_at_addition: product.discount ? discountedPrice : selectedVariant.price,
     product_images: [product.main_image, ...(product.thumbnails || [])],
   };
 
@@ -144,38 +147,26 @@ const handleBuyNow = async () => {
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || "Failed to reduce stock");
-
     setSelectedVariant(prev => ({ ...prev, stock: prev.stock - qty }));
 
-    // Add to user or guest cart
-    if (user && user.user_id) {
-      const cartRes = await fetch("https://nainikaessentialsdatabas.onrender.com/carts/add", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user_id: user.user_id, product: productObj }),
-      });
-      if (!cartRes.ok) throw new Error("Failed to add to cart");
-    } else {
-      let guestCart = JSON.parse(localStorage.getItem("cart")) || [];
-      const index = guestCart.findIndex(
-        item =>
-          item.product_id === product.id &&
-          item.selected_color === productObj.selected_color &&
-          item.selected_size === productObj.selected_size
-      );
-      if (index > -1) guestCart[index].quantity += qty;
-      else guestCart.push(productObj);
-      localStorage.setItem("cart", JSON.stringify(guestCart));
-    }
+    // Add to backend cart (user or guest)
+    const cartRes = await fetch(`https://nainikaessentialsdatabas.onrender.com/carts/add`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ user_id: userId, product: productObj }),
+    });
+
+    if (!cartRes.ok) throw new Error("Failed to add to cart");
 
     window.dispatchEvent(new Event("cartUpdated"));
 
     // Redirect to checkout
-    window.location.href = "/checkout"; // or use navigate("/checkout") if using react-router's useNavigate
+    window.location.href = "/checkout"; // or use navigate("/checkout") if using useNavigate
   } catch (err) {
     alert(err.message);
   }
 };
+
 
   const incrementQty = () => qty < (selectedVariant?.stock || 0) ? setQty(qty + 1) : alert(`Only ${selectedVariant.stock} items in stock`);
   const decrementQty = () => qty > 1 && setQty(qty - 1);
@@ -217,10 +208,23 @@ const handleBuyNow = async () => {
 
           <p style={{ color: '#666', margin: '10px 0' }}>Category: {product.category}</p>
 
-          <div style={{ marginBottom: '20px' }}>
-            <span style={{ fontSize: '12px', color: '#666', display: 'block' }}>Price</span>
-            <span style={{ fontSize: '24px', fontWeight: '700' }}>₹{currentPrice}</span>
-          </div>
+       <div style={{ marginBottom: '20px' }}>
+  <span style={{ fontSize: '12px', color: '#666', display: 'block' }}>Price</span>
+  <span style={{ fontSize: '24px', fontWeight: '700' }}>
+    {product.discount ? (
+      <>
+        <span style={{ textDecoration: 'line-through', color: '#888', marginRight: 8 }}>
+          ₹{selectedVariant?.price}
+        </span>
+        <span style={{ color: '#f43f5e' }}>₹{discountedPrice}</span>
+        <span style={{ color: '#16a34a', marginLeft: 6 }}>({product.discount}% OFF)</span>
+      </>
+    ) : (
+      <>₹{selectedVariant?.price}</>
+    )}
+  </span>
+</div>
+
 
           {/* Qty and Variant logic remains the same... */}
           <div style={{ marginBottom: '20px' }}>
@@ -228,7 +232,8 @@ const handleBuyNow = async () => {
             <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
               {product.variants.map((v, idx) => (
                 <button key={idx} onClick={() => handleVariantSelect(v)}
-                  style={{ padding: '10px 20px', borderRadius: '8px', border: selectedVariant === v ? '2px solid #4F46E5' : '1px solid #E5E7EB', background: '#fff', cursor: 'pointer' }}>
+                  style={{ padding: '10px 20px', borderRadius: '8px', 
+                  border: selectedVariant?.size === v.size && selectedVariant?.color === v.color? '2px solid #4F46E5' : '1px solid #E5E7EB', background: '#fff', cursor: 'pointer' }}>
                   {v.color} - {v.size}
                 </button>
               ))}
@@ -262,37 +267,48 @@ const handleBuyNow = async () => {
 </div>
 
 
-          {/* --- PRODUCT DETAILS ACCORDION (Added from Screenshot 1) --- */}
-          <div style={{ borderTop: '1px solid #eee' }}>
-            <div 
-              onClick={() => setShowDetails(!showDetails)}
-              style={{ display: 'flex', justifyContent: 'space-between', padding: '15px 0', cursor: 'pointer', alignItems: 'center' }}
-            >
-              <span style={{ fontWeight: '600' }}>Product Details</span>
-              {showDetails ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
-            </div>
-            {showDetails && (
-              <div style={{ paddingBottom: 15 }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
-                  <tbody>
-                    {[
-                      { label: "Brand", value: "Elan Cotts" },
-                      { label: "Fabric", value: "Fleece" },
-                      { label: "Fit", value: "Relaxed Fit" },
-                      { label: "Sleeve", value: "Full Sleeve" },
-                      { label: "Occasion", value: "Casual" },
-                      { label: "Made In", value: "India" },
-                    ].map((item, i) => (
-                      <tr key={i} style={{ borderBottom: '1px solid #f9f9f9' }}>
-                        <td style={{ padding: '8px 0', color: '#666' }}>{item.label}</td>
-                        <td style={{ padding: '8px 0', textAlign: 'right', fontWeight: '500' }}>{item.value}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
+        {/* --- PRODUCT DETAILS ACCORDION --- */}
+<div style={{ borderTop: '1px solid #eee' }}>
+  <div
+    onClick={() => setShowDetails(prev => !prev)}
+    style={{
+      display: 'flex',
+      justifyContent: 'space-between',
+      padding: '15px 0',
+      cursor: 'pointer',
+      alignItems: 'center'
+    }}
+  >
+    <span style={{ fontWeight: '600' }}>Product Details</span>
+    {showDetails ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+  </div>
+
+  {showDetails && (
+    <div style={{ paddingBottom: 15 }}>
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
+        <tbody>
+          {product.product_details ? (
+            Object.entries(product.product_details).map(([key, value], i) => (
+              <tr key={i} style={{ borderBottom: '1px solid #f9f9f9' }}>
+                <td style={{ padding: '8px 0', color: '#666' }}>{key}</td>
+                <td style={{ padding: '8px 0', textAlign: 'right', fontWeight: '500' }}>
+                  {value}
+                </td>
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td colSpan="2" style={{ padding: '10px 0', color: '#999', textAlign: 'center' }}>
+                No product details available
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
+    </div>
+  )}
+</div>
+
 
         {/* --- DESCRIPTION ACCORDION --- */}
 <div style={{ borderTop: '1px solid #eee', borderBottom: '1px solid #eee' }}>
@@ -311,22 +327,30 @@ const handleBuyNow = async () => {
   </div>
 
   {showDescription && (
-    <div style={{ padding: '10px 0', fontSize: '14px', color: '#666', lineHeight: '1.6' }}>
-      <p>
-        This is a high-quality fleece sweater, perfect for casual wear. Soft, comfortable, and stylish, 
-        available in multiple colors and sizes.
-      </p>
-      <p>
-        Material: 100% Cotton<br />
-        Care Instructions: Machine wash cold, tumble dry low
-      </p>
+  <div
+    style={{
+      padding: '10px 0',
+      fontSize: '14px',
+      color: '#666',
+      lineHeight: '1.6',
+      whiteSpace: 'pre-line'
+    }}
+  >
+    {product.description ? (
+      <>
+        <p>{product.description}</p>
 
-      <div style={{ display: 'flex', gap: 20, marginTop: 15, fontSize: '12px', color: '#666' }}>
-        <span>7-day returns</span>
-        <span>COD available</span>
-      </div>
-    </div>
-  )}
+        <div style={{ display: 'flex', gap: 20, marginTop: 15, fontSize: '12px', color: '#666' }}>
+          <span>7-day returns</span>
+          <span>COD available</span>
+        </div>
+      </>
+    ) : (
+      <p style={{ color: '#999' }}>No description available.</p>
+    )}
+  </div>
+)}
+
 </div>
 
           

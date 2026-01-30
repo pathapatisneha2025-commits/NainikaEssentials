@@ -1,89 +1,71 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-
-const PRODUCTS = [
-  {
-    id: 1,
-    slug: "black-hoodie",
-    name: "Black Hoodie",
-    price: 1299,
-    category: "hoodie",
-    image: "/blackhoddie.jpeg",
-    description: "Premium black cotton hoodie with a comfortable fit.",
-  },
-  {
-    id: 2,
-    slug: "grey-hoodie",
-    name: "Grey Hoodie",
-    price: 1399,
-    category: "hoodie",
-    image: "/hoodie.jpeg",
-    description: "Stylish grey hoodie perfect for casual wear.",
-  },
-  {
-    id: 3,
-    slug: "casual-shirt",
-    name: "Casual Shirt",
-    price: 999,
-    category: "shirts",
-    image: "/shirts.jpeg",
-    description: "Lightweight casual shirt suitable for everyday use.",
-  },
-  {
-    id: 4,
-    slug: "T-shirt",
-    name: "CasualT Shirt",
-    price: 999,
-    category: "shirts",
-    image: "/Tshirt.jpeg",
-    description: "Lightweight casual shirt suitable for everyday use.",
-  },
-  {
-    id: 5,
-    slug: "formal-pants",
-    name: "Formal Pants",
-    price: 1199,
-    category: "pants",
-    image: "/whitepants.jpeg",
-    description: "Slim-fit formal pants for office and occasions.",
-  },
-  {
-    id: 6,
-    slug: "formal-pants",
-    name: "Formal Pants",
-    price: 1199,
-    category: "pants",
-    image: "/greypants.jpeg",
-    description: "Slim-fit formal pants for office and occasions.",
-  },
-  {
-    id: 7,
-    slug: "t-shirt",
-    name: "T-Shirt",
-    price: 699,
-    category: "clothing",
-    image: "/pinksaree.jpeg",
-    description: "Soft cotton t-shirt with breathable fabric.",
-  },
-   
-];
 
 export default function CategoryProducts() {
   const { category } = useParams();
   const navigate = useNavigate();
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const filteredProducts = PRODUCTS.filter(
-    (product) => product.category === category
-  );
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const res = await fetch(
+          "https://nainikaessentialsdatabas.onrender.com/products/all"
+        );
+        const data = await res.json();
 
-  const handleClick = (slug, id) => {
-  navigate(`/product/${slug}/${id}`); // navigate to product details page with slug and id
-};
+        const filtered = data.filter(
+          (p) => p.category.toLowerCase() === category.toLowerCase()
+        );
 
+        setProducts(filtered);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, [category]);
+
+  const handleClick = (product) => {
+    const slug = product.name.replace(/\s+/g, "-").toLowerCase();
+    navigate(`/shopproduct/${product.id}`);
+  };
+
+  if (loading) return <p style={{ padding: 50, textAlign: "center" }}>Loading products...</p>;
+  if (!products.length) return <p style={{ padding: 50, textAlign: "center" }}>No products found.</p>;
 
   return (
-    <>
-      <style>{`
+    <div className="products-container">
+      <h1 className="category-title">{category}</h1>
+      <p className="category-subtitle">Explore products from this category</p>
+
+      <div className="products-grid">
+        {products.map((p) => (
+          <div
+            key={p.id}
+            className="product-card"
+            onClick={() => handleClick(p)}
+          >
+            <div className="image-box">
+              <span className="badge">Best Seller</span>
+              <span className="discount">{p.discount ? `${p.discount}% OFF` : ""}</span>
+              <img src={p.main_image} alt={p.name} />
+            </div>
+
+            <div className="product-info">
+              <div className="brand">{p.product_details?.Brand || "Nainika Essentials"}</div>
+              <div className="product-name">{p.name}</div>
+              <div className="price">₹{p.variants?.[0]?.price || "N/A"}</div>
+            </div>
+          </div>
+        ))}
+    
+
+         <style>{`
         .products-container {
           padding: 40px 6%;
           font-family: Inter, sans-serif;
@@ -201,39 +183,9 @@ export default function CategoryProducts() {
           }
         }
       `}</style>
-
-      <div className="products-container">
-        <h1 className="category-title">{category}</h1>
-        <p className="category-subtitle">
-          Explore products from this category
-        </p>
-
-        <div className="products-grid">
-          {filteredProducts.length ? (
-            filteredProducts.map((p) => (
-              <div
-                key={p.id}
-                className="product-card"
-                onClick={() => handleClick(p.slug,p.id)}
-              >
-                <div className="image-box">
-                  <span className="badge">Best Seller</span>
-                  <span className="discount">50% OFF</span>
-                  <img src={p.image} alt={p.name} />
-                </div>
-
-                <div className="product-info">
-                  <div className="brand">ELAN COTTS</div>
-                  <div className="product-name">{p.name}</div>
-                  <div className="price">₹{p.price}</div>
-                </div>
-              </div>
-            ))
-          ) : (
-            <p>No products found.</p>
-          )}
-        </div>
       </div>
-    </>
+      </div>
+
+
   );
 }

@@ -32,6 +32,7 @@ import ReturnsRefundsPolicy from "./Pages/ReturnPolicy";
 import ShippingInformation from "./Pages/Shipping";
 import ScrollToTop from "./components/ScrolllTop";
 import OrderDetail from "./Pages/myOrdeDetails";
+import TodaysOffersPage from "./Pages/TodaysOffers";
 
 function App() {
   return (
@@ -87,6 +88,8 @@ function App() {
                 <Route path="/refund" element={<ReturnsRefundsPolicy/>} />
                 <Route path="/shippolicy" element={<ShippingInformation/>} />
                 <Route path="/faq" element={<FAQ/>} />
+                                <Route path="/todaysoffers" element={<TodaysOffersPage />} />
+
 
        
       </Routes>

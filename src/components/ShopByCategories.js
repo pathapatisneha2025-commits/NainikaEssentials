@@ -1,22 +1,83 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-
-const categories = [
-  { title: "Hoodie", image: "/hoodie.jpeg", slug: "hoodie" },
-  { title: "Clothing", image: "/clothing.jpeg", slug: "clothing" },
-  { title: "Shirts", image: "/shirts.jpeg", slug: "shirts" },
-  { title: "Pants", image: "/pants.jpeg", slug: "pants" },
-];
 
 export default function ShopByCategory() {
   const navigate = useNavigate();
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Duplicate for infinite scroll
+  // Fetch products from backend
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const res = await fetch(
+          "https://nainikaessentialsdatabas.onrender.com/products/all"
+        );
+        const data = await res.json();
+        setProducts(data);
+      } catch (err) {
+        console.error("Failed to fetch products", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProducts();
+  }, []);
+
+  // Extract unique categories dynamically
+  const categories = Array.from(
+    new Set(products.map((p) => p.category))
+  ).map((cat) => {
+    const catProducts = products.filter((p) => p.category === cat);
+    return {
+      title: cat.charAt(0).toUpperCase() + cat.slice(1), // Capitalize
+      slug: cat,
+      image: catProducts[0]?.main_image || "/placeholder.jpeg",
+      count: catProducts.length,
+    };
+  });
+
   const scrollingCategories = [...categories, ...categories];
 
+  if (loading)
+    return <p style={{ padding: 50, textAlign: "center" }}>Loading categories...</p>;
+
   return (
-    <>
-      <style>{`
+    <div className="shop-container">
+      <div className="header-section">
+        <h2>Shop by Category</h2>
+        <p>Curated collections for every style</p>
+      </div>
+
+      <div className="scroll-wrapper">
+        <div className="scroll-track">
+          {scrollingCategories.map((cat, index) => (
+            <div
+              key={index}
+              className="category-card"
+              onClick={() => navigate(`/category/${cat.slug}`)}
+            >
+              <img
+                src={cat.image}
+                alt={cat.title}
+                onError={(e) => {
+                  if (e.target.src.includes(".jpg"))
+                    e.target.src = cat.image.replace(".jpg", ".jpeg");
+                }}
+              />
+              <div className="category-overlay">
+                <h3>{cat.title}</h3>
+                <span className="explore-link">
+                  Explore Collection ({cat.count})
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+     
+         <style>{`
         .shop-container {
           padding: 60px 5%;
           background: #fff;
@@ -127,38 +188,7 @@ export default function ShopByCategory() {
           }
         }
       `}</style>
-
-      <div className="shop-container">
-        <div className="header-section">
-          <h2>Shop by Category</h2>
-          <p>Curated collections for every style</p>
-        </div>
-
-        <div className="scroll-wrapper">
-          <div className="scroll-track">
-            {scrollingCategories.map((cat, index) => (
-              <div
-                key={index}
-                className="category-card"
-                onClick={() => navigate(`/category/${cat.slug}`)}
-              >
-                <img
-                  src={cat.image}
-                  alt={cat.title}
-                  onError={(e) => {
-                    if (e.target.src.includes(".jpg"))
-                      e.target.src = cat.image.replace(".jpg", ".jpeg");
-                  }}
-                />
-                <div className="category-overlay">
-                  <h3>{cat.title}</h3>
-                  <span className="explore-link">Explore Collection →</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
       </div>
-    </>
+  
   );
 }

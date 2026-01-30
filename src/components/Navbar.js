@@ -22,7 +22,8 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [cartCount, setCartCount] = useState(0);
   const [showPopup, setShowPopup] = useState(true);
-  const [loginModal, setLoginModal] = useState(false);
+const [authChoiceModal, setAuthChoiceModal] = useState(false);
+const [redirectAfterGuest, setRedirectAfterGuest] = useState("/orders");
 
   /* ================= AUTH STATE ================= */
   const [user, setUser] = useState(() => {
@@ -44,6 +45,13 @@ useEffect(() => {
   const stored = localStorage.getItem("adminUser");
   setUser(stored ? JSON.parse(stored) : null);
 }, [location.key]);
+useEffect(() => {
+  let guestId = localStorage.getItem("guestId");
+  if (!guestId) {
+    guestId = `guest_${Date.now()}`;
+    localStorage.setItem("guestId", guestId);
+  }
+}, []);
 
 // Sync auth across tabs AND after login in same tab
 useEffect(() => {
@@ -166,12 +174,6 @@ const updateCartCount = async () => {
   }, []);
 
 
-// Listen for cart updates
-useEffect(() => {
-  window.addEventListener("cartUpdated", updateCartCount);
-  return () => window.removeEventListener("cartUpdated", updateCartCount);
-}, []);
-
 
   /* ================= ACTIONS ================= */
   const handleLogout = () => {
@@ -182,38 +184,75 @@ useEffect(() => {
     navigate("/login", { replace: true });
   };
 
-  const handleCartClick = () => {
-    if (!isLoggedIn) return setLoginModal(true);
-    navigate("/cart");
-  };
+const handleCartClick = () => {
+  if (!isLoggedIn) {
+    setRedirectAfterGuest("/cart"); // <-- set redirect
+    setAuthChoiceModal(true);
+    return;
+  }
+  navigate("/cart");
+};
 
-  const handleOrdersClick = () => {
-    if (!isLoggedIn) return setLoginModal(true);
-    navigate("/orders");
-  };
+const handleOrdersClick = () => {
+  if (!isLoggedIn) {
+    setRedirectAfterGuest("/orders"); // <-- set redirect
+    setAuthChoiceModal(true);
+    return;
+  }
+  navigate("/orders");
+};
+
+const handleProfileClick = () => {
+  if (!isLoggedIn) {
+    setAuthChoiceModal(true);
+    return;
+  }
+  navigate("/profile");
+};
+
 
   const handleViewOffers = () => {
     setShowPopup(false);
-    navigate("/shop");
+    navigate("/todaysorders");
   };
+const continueAsGuest = () => {
+  let guestId = localStorage.getItem("guestId");
+  if (!guestId) {
+    guestId = `guest_${Date.now()}`;
+    localStorage.setItem("guestId", guestId);
+  }
 
-  const closeLoginModal = () => setLoginModal(false);
-  const goToLogin = () => {
-    setLoginModal(false);
-    navigate("/login");
-  };
+  setAuthChoiceModal(false);
+  navigate(`${redirectAfterGuest}?guest=${guestId}`); // <-- dynamic redirect
+};
+
+
+const closeAuthModal = () => setAuthChoiceModal(false);
+ const goToLogin = () => {
+  setAuthChoiceModal(false);
+  navigate("/login");
+};
+
 
 
   return (
     <>
       <style>{`
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        .navbar {
-          height: 80px; padding: 0 5%; background: #fff;
-          display: flex; align-items: center; justify-content: space-between;
-          position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid #f0f0f0;
-          font-family: 'Inter', sans-serif;
-        }
+       .navbar {
+  min-height: 96px;        /* allows logo + text */
+  padding: 6px 5%;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  border-bottom: 1px solid #f0f0f0;
+  font-family: 'Inter', sans-serif;
+}
+
         .logo { font-weight: 700; font-size: 22px; color: #1a1a1a; text-decoration: none; }
 
         .nav-center { display: flex; align-items: center; background: #f3f4ff; padding: 6px; border-radius: 40px; gap: 4px; }
@@ -275,6 +314,63 @@ useEffect(() => {
   padding: 0 10px;
   z-index: 1000;
 }
+.brand-vertical {
+  display: flex;
+  flex-direction: column;   /* 👈 TEXT BELOW LOGO */
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  gap: 4px;
+}
+
+.brand-vertical img {
+  height: 80px;   /* ⬆️ increased from 42px */
+  width: auto;
+}
+
+
+.brand-text {
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  text-align: center;
+
+  background: linear-gradient(
+    90deg,
+    #FFE2B8,   /* light peach */
+    #F4B860,   /* soft orange */
+    #E89C3A,   /* warm gold-orange */
+    #FFF1D6
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+
+  font-family: "Playfair Display", serif;
+
+  text-shadow:
+    0 1px 8px rgba(232, 156, 58, 0.45),
+    0 0 14px rgba(255, 226, 184, 0.35);
+}
+
+
+
+@media (max-width: 768px) {
+  .brand-vertical img {
+    height: 70px;          /* ⬆️ increased mobile logo */
+  }
+
+  .brand-text {
+    font-size: 11px;       /* slightly larger for balance */
+    letter-spacing: 1.6px;
+  }
+
+  .navbar {
+    min-height: 88px;      /* IMPORTANT: allow space */
+  }
+}
+
+
 
 /* Show only on mobile */
 @media (max-width: 992px) {
@@ -401,7 +497,7 @@ useEffect(() => {
   style={{ left: menuOpen ? "0" : "-100%" }}
 >
   <div className="sidebar-header">
-    <span className="sidebar-logo">NainikaEssentials</span>
+    <span className="sidebar-logo">Nainika Essentials</span>
     <FiX
       size={26}
       onClick={() => setMenuOpen(false)}
@@ -450,7 +546,11 @@ useEffect(() => {
 
       {/* Navbar */}
       <header className="navbar">
-        <NavLink to="/" className="logo"><img src="/logoimage.jpeg" alt="ElanCotts" style={{ height: "40px", width: "auto" }} /> NainikaEssentials</NavLink>
+<NavLink to="/" className="brand-vertical">
+  <img src="/elancottlogo.png" alt="Nainika Essentials Logo" />
+  <span className="brand-text">NAINIKA ESSENTIALS</span>
+</NavLink>
+
         <nav className="nav-center">
           <NavLink to="/" className="nav-item"><FiHome /> Home</NavLink>
           <NavLink to="/shop" className="nav-item"><FiPackage /> Shop</NavLink>
@@ -522,15 +622,44 @@ useEffect(() => {
         </div>
       )}
 
-      {/* Login Required Modal */}
-      {loginModal && (
-        <div className="login-modal">
-          <h3>Login Required</h3>
-          <p>You need to log in to access this page.</p>
-          <button onClick={goToLogin}>Go to Login</button>
-          <button onClick={closeLoginModal} style={{ marginLeft: "8px", background: "#ccc", color: "#000" }}>Cancel</button>
-        </div>
-      )}
+    {authChoiceModal && (
+  <div className="login-modal">
+    <h3>Login or Continue as Guest</h3>
+    <p style={{ fontSize: "14px", color: "#666" }}>
+      Login to track orders easily <br />
+      or continue as guest.
+    </p>
+
+    <button onClick={goToLogin} style={{ width: "100%" }}>
+      Login / Register
+    </button>
+
+    <button
+      onClick={continueAsGuest}
+      style={{
+        width: "100%",
+        marginTop: "10px",
+        background: "#f3f3f3",
+        color: "#000"
+      }}
+    >
+      Continue as Guest
+    </button>
+
+    <button
+      onClick={() => setAuthChoiceModal(false)}
+      style={{
+        width: "100%",
+        marginTop: "10px",
+        background: "transparent",
+        color: "#777"
+      }}
+    >
+      Cancel
+    </button>
+  </div>
+)}
+
     </>
   );
 }

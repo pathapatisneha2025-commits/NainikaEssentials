@@ -21,7 +21,7 @@ const ShopPage = () => {
           id: p.id,
           name: p.name,
           img: p.main_image,
-          discount: "10%",
+        discount: p.discount !== null && p.discount !== undefined ? `${p.discount}%` : "10%", // add % and fallback to 10%
           rating: 4.0,
           reviews: 5,
           category: p.category.charAt(0).toUpperCase() + p.category.slice(1)

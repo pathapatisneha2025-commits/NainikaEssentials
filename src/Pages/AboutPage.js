@@ -170,7 +170,7 @@ const AboutPage = () => {
             </div>
             <div className="hero-image-container">
               <img 
-                src="/logoimage.jpeg" 
+                src="/elancottlogo.png" 
                 alt="Elan Cotts Apparel" 
                 className="hero-img"
               />

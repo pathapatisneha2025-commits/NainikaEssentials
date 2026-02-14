@@ -13,6 +13,9 @@ export default function ShopProductDetails() {
   const [qty, setQty] = useState(1);
   const [width, setWidth] = useState(window.innerWidth);
 const [showDescription, setShowDescription] = useState(false);
+const hasSizes = Array.isArray(product?.variants)
+  ? product.variants.some(v => v.size && v.size !== "")
+  : false;
 
   // New states for the UI sections in screenshots
   const [showDetails, setShowDetails] = useState(true);
@@ -308,19 +311,41 @@ navigate("/checkout");
 
 
           {/* Qty and Variant logic remains the same... */}
-          <div style={{ marginBottom: '20px' }}>
-            <p style={{ fontSize: '14px', fontWeight: '500', marginBottom: '10px' }}>Variants</p>
-            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-              {product.variants.map((v, idx) => (
-                <button key={idx} onClick={() => handleVariantSelect(v)}
-                  style={{ padding: '10px 20px', borderRadius: '8px', 
-                  border: selectedVariant?.size === v.size && selectedVariant?.color === v.color? '2px solid #4F46E5' : '1px solid #E5E7EB', background: '#fff', cursor: 'pointer' }}>
-                  {v.color} - {v.size}
-                </button>
-              ))}
-            </div>
-            <p style={{ fontSize: '12px', color: '#666', marginTop: '8px' }}>{currentStock} available</p>
-          </div>
+          {/* Qty and Variant logic */}
+<div style={{ marginBottom: '20px' }}>
+  {hasSizes ? (
+    <>
+      <p style={{ fontSize: '14px', fontWeight: '500', marginBottom: '10px' }}>Variants</p>
+      <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+        {product.variants.map((v, idx) => (
+          <button
+            key={idx}
+            onClick={() => handleVariantSelect(v)}
+            style={{
+              padding: '10px 20px',
+              borderRadius: '8px',
+              border:
+                selectedVariant?.size === v.size && selectedVariant?.color === v.color
+                  ? '2px solid #4F46E5'
+                  : '1px solid #E5E7EB',
+              background: '#fff',
+              cursor: 'pointer'
+            }}
+          >
+            {v.color} - {v.size}
+          </button>
+        ))}
+      </div>
+      <p style={{ fontSize: '12px', color: '#666', marginTop: '8px' }}>
+        {currentStock} available
+      </p>
+    </>
+  ) : (
+    <p style={{ fontSize: '12px', color: '#666', marginTop: '8px' }}>
+      {currentStock} available
+    </p>
+  )}
+</div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '30px' }}>
             <span>Qty</span>

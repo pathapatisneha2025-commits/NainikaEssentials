@@ -8,14 +8,21 @@ export default function CartPage() {
   const [cart, setCart] = useState([]);
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState(null);
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
   const navigate = useNavigate();
+
+  // Update window width on resize
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   // --- Get logged-in or guest user ID ---
   const getUserId = () => {
     const storedUser = JSON.parse(localStorage.getItem("adminUser") || "{}");
     if (storedUser.user_id) return storedUser.user_id;
 
-    // Guest
     let guestId = localStorage.getItem("guestId");
     if (!guestId) {
       guestId = `guest_${Date.now()}`;
@@ -42,7 +49,6 @@ export default function CartPage() {
     }
   };
 
-  // --- Add / update quantity ---
   const updateQty = async (item, newQty) => {
     if (newQty < 1) return;
 
@@ -63,7 +69,6 @@ export default function CartPage() {
     }
   };
 
-  // --- Remove item ---
   const removeItem = async (item) => {
     try {
       await fetch(`${API_BASE}/carts/remove/${userId}/${item.product_id}`, {
@@ -80,7 +85,6 @@ export default function CartPage() {
     }
   };
 
-  // --- Calculate subtotal ---
   const validCart = cart.filter(item => item && typeof item.price_at_addition === "number");
   const subtotal = validCart.reduce((acc, item) => acc + item.price_at_addition * item.quantity, 0);
 
@@ -107,10 +111,17 @@ export default function CartPage() {
     );
   }
 
+  // Responsive grid: stacked on mobile (<768px), two-column on larger screens
+  const gridStyle = {
+    display: "grid",
+    gap: 20,
+    gridTemplateColumns: windowWidth < 768 ? "1fr" : "1.8fr 1fr",
+  };
+
   return (
     <div style={{ padding: "20px 5%", minHeight: "100vh" }}>
       <h1 style={{ fontSize: "24px", fontWeight: 600, marginBottom: 20 }}>Shopping Cart</h1>
-      <div style={{ display: "grid", gridTemplateColumns: "1.8fr 1fr", gap: 20 }}>
+      <div style={gridStyle}>
         {/* Cart Items */}
         <div style={{ display: "flex", flexDirection: "column", gap: 15 }}>
           {validCart.map(item => (

@@ -18,6 +18,8 @@ export default function CheckoutPage() {
   const [allCoupons, setAllCoupons] = useState([]);
   const [codCharge, setCodCharge] = useState(0);
   const [orderPlaced, setOrderPlaced] = useState(null);
+const paymentStatus =
+  paymentMethod === "cod" ? "pending" : "paid";
 
   // --- Guest / User ID ---
   const user = JSON.parse(localStorage.getItem("adminUser"));
@@ -177,55 +179,104 @@ const generateInvoice = (preview = false) => {
 };
 
 
-  // --- Place order ---
-  const placeOrder = async () => {
-    if (!address.name || !address.phone || !address.pincode) {
-      alert("Please fill delivery address");
-      return;
-    }
-    if (!cart.length) return alert("Cart is empty!");
+const placeOrder = async () => {
+  if (!address.name || !address.phone || !address.pincode) {
+    alert("Please fill delivery address");
+    return;
+  }
 
-    const payload = {
-      user_id: userId,
-      items: JSON.stringify(cart.map(item => ({
-        product_id: item.product_id,
-        product_name: item.product_name,
-        product_image: item.product_images?.[0] || "",
-        quantity: item.quantity,
-        price: item.price_at_addition,
-        size: item.selected_size,
-        color: typeof item.selected_color === "string" ? item.selected_color : item.selected_color?.color || ""
-      }))),
-      total_amount: totalAmount.toFixed(2),
-      shipping_address: JSON.stringify(address),
-      payment_method: paymentMethod,
-      applied_coupon: appliedCoupon?.code || null,
-      coupon_discount: couponDiscount.toFixed(2),
-      cgst: cgst.toFixed(2),
-      sgst: sgst.toFixed(2),
-      cod_extra: delivery.toFixed(2)
+  if (!cart.length) return alert("Cart is empty!");
+
+  // 🔥 If COD → Direct order
+  if (paymentMethod === "cod") {
+    return createFinalOrder("pending");
+  }
+
+  // 🔥 If ONLINE → Razorpay flow
+  try {
+    // 1️⃣ Create Razorpay order
+    const orderRes = await fetch(`${BASE_URL}/orders/create-razorpay-order`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        amount: Math.round(totalAmount * 100) // Razorpay needs paise
+      })
+    });
+
+    const orderData = await orderRes.json();
+
+    const options = {
+      key: "rzp_test_xxxxxxxxx", // 🔥 put your Razorpay key here
+      amount: orderData.amount,
+      currency: "INR",
+      name: "Nainika Essentials",
+      description: "Order Payment",
+      order_id: orderData.id,
+
+      handler: async function (response) {
+
+        // 2️⃣ Verify payment
+        const verifyRes = await fetch(`${BASE_URL}/orders/verify-razorpay-payment`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(response)
+        });
+
+        const verifyData = await verifyRes.json();
+
+        if (verifyData.success) {
+          // 3️⃣ Create actual order in DB
+          createFinalOrder("paid");
+        } else {
+          alert("Payment verification failed");
+        }
+      },
+
+      prefill: {
+        name: address.name,
+        contact: address.phone,
+      },
+
+      theme: {
+        color: "#4f46e5"
+      }
     };
 
-    try {
-      const res = await fetch(`${BASE_URL}/orders/add`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      if (!res.ok) throw new Error("Order failed");
-      const orderData = await res.json();
+    const rzp = new window.Razorpay(options);
+    rzp.open();
 
-      setCart([]);
-      setAppliedCoupon(null);
-      setCouponCode("");
-      setOrderPlaced(orderData);
-
-      // setTimeout(() => navigate("/"), 3000);
-    } catch (err) {
-      console.error(err);
-      alert("Order failed");
-    }
+  } catch (err) {
+    console.error(err);
+    alert("Payment failed");
+  }
+};
+const createFinalOrder = async (status) => {
+  const payload = {
+    user_id: userId,
+    items: JSON.stringify(cart),
+    total_amount: totalAmount.toFixed(2),
+    shipping_address: JSON.stringify(address),
+    payment_method: paymentMethod,
+    payment_status: status
   };
+
+  try {
+    const res = await fetch(`${BASE_URL}/orders/add`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    const orderData = await res.json();
+    setOrderPlaced(orderData);
+
+  } catch (err) {
+    console.error(err);
+    alert("Order failed");
+  }
+};
+
+
 
   // --- THANK YOU PAGE ---
   if (orderPlaced) {
@@ -247,9 +298,12 @@ const generateInvoice = (preview = false) => {
             Pincode: {addr.pincode} <br/>
             Phone: {addr.phone}
           </p>
+          {orderPlaced.payment_status === "paid" && (
           <button onClick={()=>generateInvoice()} style={{ marginTop:10, padding:"12px 24px", background:"#10b981", color:"#fff", border:"none", borderRadius:8, fontSize:16, cursor:"pointer" }}>
             Download Invoice
           </button>
+          )}
+
           <button onClick={()=>navigate("/")} style={{ marginTop:10, padding:"12px 24px", background:"#4f46e5", color:"#fff", border:"none", borderRadius:8, fontSize:16, cursor:"pointer" }}>
             Continue Shopping
           </button>
@@ -354,9 +408,9 @@ const generateInvoice = (preview = false) => {
             <div style={{ display:"flex", justifyContent:"space-between", fontWeight:"700", fontSize:size.fontMedium, margin:"12px 0" }}><span>Total Amount</span><span>₹{totalAmount.toFixed(2)}</span></div>
 
             {/* --- Preview / Download Invoice Button --- */}
-            <button onClick={()=>generateInvoice(true)} style={{ width:"100%", padding:size.buttonPadding, background:"#10b981", color:"#fff", border:"none", borderRadius:size.borderRadius, fontSize:size.fontSmall, cursor:"pointer", marginBottom:6 }}>
+            {/* <button onClick={()=>generateInvoice(true)} style={{ width:"100%", padding:size.buttonPadding, background:"#10b981", color:"#fff", border:"none", borderRadius:size.borderRadius, fontSize:size.fontSmall, cursor:"pointer", marginBottom:6 }}>
               Preview / Download Invoice
-            </button>
+            </button> */}
 
             <button onClick={placeOrder} style={{ width:"100%", padding:size.buttonPadding, background:"#4f46e5", color:"#fff", border:"none", borderRadius:size.borderRadius, fontSize:size.fontSmall, cursor:"pointer" }}>
               Place Order

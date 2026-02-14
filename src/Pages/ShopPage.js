@@ -8,46 +8,52 @@ const ShopPage = () => {
   const [loading, setLoading] = useState(true);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [categories, setCategories] = useState([]);
+
 const [sortBy, setSortBy] = useState("recommended");
 
   const navigate = useNavigate();
 
-  const categories = ["Shirts", "Clothing", "Hoddies", "Pants"];
+  // const categories = ["Shirts", "Clothing", "Hoddies", "Pants"];
+useEffect(() => {
+  const fetchProducts = async () => {
+    try {
+      const res = await fetch('https://nainikaessentialsdatabas.onrender.com/products/all');
+      const data = await res.json();
 
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const res = await fetch('https://nainikaessentialsdatabas.onrender.com/products/all');
-        const data = await res.json();
+      // Map products
+      const mappedProducts = data.map(p => {
+        const prices = p.variants?.map(v => v.price) || [];
+        const minPrice = prices.length ? Math.min(...prices) : 0;
 
-        const mappedProducts = data.map(p => {
-  // get lowest price from variants
-  const prices = p.variants?.map(v => v.price) || [];
-  const minPrice = prices.length ? Math.min(...prices) : 0;
+        return {
+          id: p.id,
+          name: p.name,
+          img: p.main_image,
+          discount: p.discount ? `${p.discount}%` : "10%",
+          rating: 4.0,
+          reviews: 5,
+          category: p.category.charAt(0).toUpperCase() + p.category.slice(1),
+          price: minPrice,
+        };
+      });
 
-  return {
-    id: p.id,
-    name: p.name,
-    img: p.main_image,
-    discount: p.discount ? `${p.discount}%` : "10%",
-    rating: 4.0,
-    reviews: 5,
-    category: p.category.charAt(0).toUpperCase() + p.category.slice(1),
-    price: minPrice, // ⭐ IMPORTANT
+      setProducts(mappedProducts);
+
+      // Extract unique categories
+      const uniqueCategories = [...new Set(data.map(p => p.category.charAt(0).toUpperCase() + p.category.slice(1)))];
+      setCategories(uniqueCategories);
+
+      setLoading(false);
+    } catch (err) {
+      console.error("Error fetching products:", err);
+      setLoading(false);
+    }
   };
-});
 
+  fetchProducts();
+}, []);
 
-        setProducts(mappedProducts);
-        setLoading(false);
-      } catch (err) {
-        console.error("Error fetching products:", err);
-        setLoading(false);
-      }
-    };
-
-    fetchProducts();
-  }, []);
 
   const handleProductClick = (product) => {
     navigate(`/shopproduct/${product.id}`);

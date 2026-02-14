@@ -21,6 +21,10 @@ export default function ProductDetails() {
 
   const productType = location.state?.type || "bestseller";
   const endpointMap = { bestseller: "bestseller", newarrival: "newarrival", featured: "featured" };
+const hasSizes = Array.isArray(product?.variants)
+  ? product.variants.some(v => v.size && v.size !== "")
+  : false;
+
 
   // Fetch product
   useEffect(() => {
@@ -31,15 +35,18 @@ export default function ProductDetails() {
         if (!res.ok) throw new Error("Product not found");
         const data = await res.json();
         setProduct(data);
-        setSelectedVariant(
-          data?.variants?.[0] || {
-            color: "Default",
-            size: "Free Size",
-            price: data.price || 0,
-            stock: data.stock || 0,
-            main_image: data.main_image,
-          }
-        );
+       if (data?.variants?.length > 0) {
+  setSelectedVariant(data.variants[0]);
+} else {
+  setSelectedVariant({
+    color: "Default",
+    size: null,
+    price: data.price || 0,
+    stock: data.stock || 0,
+    main_image: data.main_image,
+  });
+}
+
 setReviews(Array.isArray(data.reviews) ? data.reviews : []);
       } catch (err) {
         console.error(err);
@@ -230,45 +237,65 @@ const productDescription =
               <Share2 size={18} color="#64748b" />
             </div>
           </div>
-          <p style={{ color: "#666", margin: "10px 0" }}>Category: {product.category}</p>
-<p style={{ fontSize: 24, fontWeight: 700 }}>
-  ₹{currentPrice}
+        <p style={{ fontSize: 24, fontWeight: 700 }}>
+  ₹{currentPrice}{" "}
   {discount > 0 && (
     <span style={{ textDecoration: "line-through", color: "#999", fontSize: 14, marginLeft: 8 }}>
       ₹{originalPrice}
     </span>
   )}
+  {/* Show stock for single-variant products */}
+  {!hasSizes && (
+    <span style={{ fontSize: 16, color: "#666", marginLeft: 12 }}>
+      (Stock: {currentStock})
+    </span>
+  )}
 </p>
+
           <p style={{ color: "#f59e0b", fontWeight: 600 }}>
             Average Rating: {averageRating.toFixed(1)} ★
           </p>
 
-          {/* VARIANTS */}
-          <div style={{ margin: "20px 0" }}>
-            <p style={{ fontSize: 14, fontWeight: 500, marginBottom: 10 }}>Variants</p>
-            <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-              {product.variants?.length ? (
-                product.variants.map((v, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => handleVariantSelect(v)}
-                    style={{
-                      padding: "10px 20px",
-                      borderRadius: 8,
-                      border: selectedVariant === v ? "2px solid #4F46E5" : "1px solid #E5E7EB",
-                      cursor: "pointer",
-                      background: "#fff",
-                    }}
-                  >
-                    {v.color} - {v.size}
-                  </button>
-                ))
-              ) : (
-                <span>No variants</span>
-              )}
-            </div>
-            <p style={{ fontSize: 12, color: "#666", marginTop: 8 }}>{currentStock} available</p>
-          </div>
+      {/* VARIANTS */}
+{hasSizes && (
+  <div style={{ margin: "20px 0" }}>
+    <p style={{ fontSize: 14, fontWeight: 500, marginBottom: 10 }}>
+      Variants
+    </p>
+    <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+      {product.variants.map((v, idx) => (
+        <button
+          key={idx}
+          onClick={() => handleVariantSelect(v)}
+          style={{
+            padding: "10px 20px",
+            borderRadius: 8,
+            border:
+              selectedVariant === v
+                ? "2px solid #4F46E5"
+                : "1px solid #E5E7EB",
+            cursor: "pointer",
+            background: "#fff",
+          }}
+        >
+          {v.color || "Default"} {v.size ? `- ${v.size}` : ""}
+        </button>
+      ))}
+    </div>
+    <p style={{ fontSize: 12, color: "#666", marginTop: 8 }}>
+      {currentStock} available
+    </p>
+  </div>
+)}
+
+{/* Show stock and price even if no variants */}
+{/* {!hasSizes && (
+  <p style={{ fontSize: 14, color: "#666", marginTop: 8 }}>
+    Stock: {currentStock} | Price: ₹{currentPrice}
+  </p>
+)} */}
+
+
 
           {/* QUANTITY */}
           <div style={{ display: "flex", alignItems: "center", gap: 15, marginBottom: 30 }}>

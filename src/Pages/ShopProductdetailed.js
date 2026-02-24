@@ -161,7 +161,7 @@ const handleAddToCart = async () => {
     selected_size: selectedVariant.size || "Free Size",
     quantity: qty,
     price_at_addition: product.discount ? discountedPrice : selectedVariant.price,
-    product_images: [product.main_image, ...(product.thumbnails || [])],
+  product_image: product.main_image, // ✅ ONLY MAIN IMAGE
   };
 
   try {
@@ -209,7 +209,7 @@ const handleBuyNow = async () => {
     selected_size: selectedVariant.size || "Free Size",
     quantity: qty,
     price_at_addition: product.discount ? discountedPrice : selectedVariant.price,
-    product_images: [product.main_image, ...(product.thumbnails || [])],
+  product_image: product.main_image, // ✅ ONLY MAIN IMAGE
   };
 
   try {

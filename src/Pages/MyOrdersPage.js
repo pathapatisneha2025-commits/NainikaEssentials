@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-const API_BASE = "https://nainikaessentialsdatabas.onrender.com";
+const API_BASE = "https://nainikaessentialsdatabas-bii8.onrender.com";
 
 export default function MyOrders() {
   const navigate = useNavigate();
@@ -130,9 +130,9 @@ export default function MyOrders() {
           </thead>
           <tbody>
             {orders.map((order) => (
-              <tr key={order.order_id} onClick={() => navigate(`/orders/${order.order_id}`)}>
+              <tr key={order.order_id} onClick={() => navigate(`/orders/${order.id}`)}>
                 <td className="order-id-cell">
-                  #{(order.order_id).toString().slice(-6)}
+                  #{(order.id).toString().slice(-6)}
                   <span>{order.payment_method?.toUpperCase()}</span>
                 </td>
                 <td>{new Date(order.created_at).toLocaleDateString('en-GB')}</td>

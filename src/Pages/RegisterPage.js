@@ -40,7 +40,7 @@ const RegisterPage = () => {
     setLoading(true);
 
     try {
-      const res = await fetch("https://nainikaessentialsdatabas.onrender.com/users/register", {
+      const res = await fetch("https://nainikaessentialsdatabas-bii8.onrender.com/users/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

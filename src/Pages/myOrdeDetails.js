@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 
-const API_BASE = "https://nainikaessentialsdatabas.onrender.com";
+const API_BASE = "https://nainikaessentialsdatabas-bii8.onrender.com";
 
 export default function OrderDetail() {
   const { id } = useParams(); // order id from URL

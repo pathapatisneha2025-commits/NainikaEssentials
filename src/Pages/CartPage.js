@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Trash2, ShoppingCart, ArrowRight } from "lucide-react";
 
-const API_BASE = "https://nainikaessentialsdatabas.onrender.com";
+const API_BASE = "https://nainikaessentialsdatabas-bii8.onrender.com";
 
 export default function CartPage() {
   const [cart, setCart] = useState([]);
@@ -126,11 +126,11 @@ export default function CartPage() {
         <div style={{ display: "flex", flexDirection: "column", gap: 15 }}>
           {validCart.map(item => (
             <div key={item.product_id} style={{ display: "flex", gap: 15, padding: 10, border: "1px solid #f0f0f0", borderRadius: 10, flexWrap: "wrap" }}>
-              <img
-                src={Array.isArray(item.product_images) ? item.product_images[0] : "/placeholder.png"}
-                alt={item.product_name}
-                style={{ width: 100, height: 130, objectFit: "cover", borderRadius: 8 }}
-              />
+             <img
+  src={item.product_image || "/placeholder.png"}
+  alt={item.product_name}
+  style={{ width: 100, height: 130, objectFit: "cover", borderRadius: 8 }}
+/>
               <div style={{ flex: 1, minWidth: 150 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap" }}>
                   <h2 style={{ margin: 0, fontSize: 16, fontWeight: 500 }}>{item.product_name}</h2>

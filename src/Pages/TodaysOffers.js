@@ -10,7 +10,7 @@ export default function TodaysOffersPage() {
     const fetchOffers = async () => {
       try {
         const res = await fetch(
-          "https://nainikaessentialsdatabas.onrender.com/bestseller/all"
+          "https://nainikaessentialsdatabas-bii8.onrender.com/bestseller/all"
         );
         const data = await res.json();
         const todaysOffers = data.filter(product => product.type === "todaysoffers");

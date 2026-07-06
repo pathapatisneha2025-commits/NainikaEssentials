@@ -18,7 +18,7 @@ const [sortBy, setSortBy] = useState("recommended");
 useEffect(() => {
   const fetchProducts = async () => {
     try {
-      const res = await fetch('https://nainikaessentialsdatabas.onrender.com/products/all');
+      const res = await fetch('https://nainikaessentialsdatabas-bii8.onrender.com/products/all');
       const data = await res.json();
 
       // Map products

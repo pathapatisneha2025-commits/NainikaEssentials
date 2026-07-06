@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { User, ShoppingCart } from "lucide-react"; // Optional: Use lucide-react or similar for icons
 
-const BASE_URL = "https://nainikaessentialsdatabas.onrender.com";
+const BASE_URL = "https://nainikaessentialsdatabas-bii8.onrender.com";
 
 export default function NewArrivals() {
   const navigate = useNavigate();
@@ -12,7 +12,7 @@ export default function NewArrivals() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-      const res = await fetch("https://nainikaessentialsdatabas.onrender.com/bestseller/all");
+      const res = await fetch("https://nainikaessentialsdatabas-bii8.onrender.com/bestseller/all");
       if (!res.ok) throw new Error("Failed to fetch featured products");
       const data = await res.json();
       const featuredProducts = data.filter(p => p.type === "newarrival");

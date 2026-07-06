@@ -141,7 +141,7 @@ const fetchCart = async () => {
       userId = JSON.parse(localStorage.getItem("adminUser"))?.user_id;
     }
 
-    const res = await fetch(`https://nainikaessentialsdatabas.onrender.com/carts/${userId}`);
+    const res = await fetch(`https://nainikaessentialsdatabas-bii8.onrender.com/carts/${userId}`);
     const data = await res.json();
 
     // Make sure items exist

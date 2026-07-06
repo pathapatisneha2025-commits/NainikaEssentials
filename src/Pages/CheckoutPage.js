@@ -3,7 +3,7 @@ import { ShieldCheck } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import jsPDF from "jspdf"; // <-- added for invoice
 
-const BASE_URL = "https://nainikaessentialsdatabas.onrender.com";
+const BASE_URL = "https://nainikaessentialsdatabas-bii8.onrender.com";
 const GST_RATE = 0.18;
 
 export default function CheckoutPage() {
@@ -144,8 +144,10 @@ const generateInvoice = (preview = false) => {
     if (!orderPlaced) return alert("No order to generate invoice");
     itemsToUse = typeof orderPlaced.items === "string" ? JSON.parse(orderPlaced.items) : orderPlaced.items;
     orderId = orderPlaced.order_id;
-    addr = JSON.parse(orderPlaced.shipping_address);
-    total = orderPlaced.total_amount;
+const addr =
+  typeof orderPlaced.shipping_address === "string"
+    ? JSON.parse(orderPlaced.shipping_address)
+    : orderPlaced.shipping_address;    total = orderPlaced.total_amount;
     doc.setFontSize(12);
     doc.text(`Order ID: ${orderId}`, 20, 40);
     doc.text(`Name: ${addr.name}`, 20, 50);
@@ -383,7 +385,7 @@ const createFinalOrder = async (status) => {
             )}
 
             {cart.map(item=>{
-              const image=item.product_images?.[0]||"/placeholder.png";
+const image = item.product_image || "/placeholder.png";
               const color=typeof item.selected_color==="string"?item.selected_color:item.selected_color?.color||"";
               return (
                 <div key={item.product_id+color+item.selected_size} style={{ display:"flex", flexDirection:isMobile?"column":"row", alignItems:isMobile?"flex-start":"center", gap:size.gap, marginBottom:size.gap }}>

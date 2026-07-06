@@ -31,7 +31,7 @@ const hasSizes = Array.isArray(product?.variants)
     const fetchProduct = async () => {
       setLoading(true);
       try {
-        const res = await fetch(`https://nainikaessentialsdatabas.onrender.com/${endpointMap[productType]}/${productId}`);
+        const res = await fetch(`https://nainikaessentialsdatabas-bii8.onrender.com/${endpointMap[productType]}/${productId}`);
         if (!res.ok) throw new Error("Product not found");
         const data = await res.json();
         setProduct(data);
@@ -111,7 +111,7 @@ const handleAddToCart = async () => {
 
   try {
     // Reduce stock in DB
-    const resStock = await fetch(`https://nainikaessentialsdatabas.onrender.com/bestseller/reduce-stock`, {
+    const resStock = await fetch(`https://nainikaessentialsdatabas-bii8.onrender.com/bestseller/reduce-stock`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -126,7 +126,7 @@ const handleAddToCart = async () => {
     setSelectedVariant(prev => ({ ...prev, stock: prev.stock - qty }));
 
     // Add cart to DB (guest or logged-in)
-    const resCart = await fetch("https://nainikaessentialsdatabas.onrender.com/carts/add", {
+    const resCart = await fetch("https://nainikaessentialsdatabas-bii8.onrender.com/carts/add", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ user_id: userId, product: productObj }),
@@ -161,7 +161,7 @@ const handleBuyNow = async () => {
     setSubmitting(true);
     try {
       const res = await fetch(
-        `https://nainikaessentialsdatabas.onrender.com/${endpointMap[productType]}/${productId}/review`,
+        `https://nainikaessentialsdatabas-bii8.onrender.com/${endpointMap[productType]}/${productId}/review`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

@@ -9,10 +9,10 @@ const FeaturedSection = () => {
   // Fetch featured products
   const fetchFeatured = async () => {
     try {
-      const res = await fetch("https://nainikaessentialsdatabas.onrender.com/bestseller/all");
+      const res = await fetch("https://nainikaessentialsdatabas-bii8.onrender.com/bestseller/all");
       if (!res.ok) throw new Error("Failed to fetch featured products");
       const data = await res.json();
-      const featuredProducts = data.filter(p => p.type === "featured");
+      const featuredProducts = data.filter(p => p.type === "Featured");
       setProducts(featuredProducts);
     } catch (err) {
       console.error(err);

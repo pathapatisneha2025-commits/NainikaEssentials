@@ -37,7 +37,7 @@ const navigate = useNavigate();
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const res = await fetch(`https://nainikaessentialsdatabas.onrender.com/products/${productId}`);
+        const res = await fetch(`https://nainikaessentialsdatabas-bii8.onrender.com/products/${productId}`);
         const data = await res.json();
         setProduct(data);
 
@@ -71,7 +71,7 @@ const submitReview = async () => {
   try {
     setSubmitting(true);
 
-    const res = await fetch(`https://nainikaessentialsdatabas.onrender.com/products/${product.id}/review`,
+    const res = await fetch(`https://nainikaessentialsdatabas-bii8.onrender.com/products/${product.id}/review`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -105,7 +105,7 @@ const submitReview = async () => {
 useEffect(() => {
   const fetchReviews = async () => {
     try {
-      const res = await fetch(`https://nainikaessentialsdatabas.onrender.com/products/${productId}/reviews`);
+      const res = await fetch(`https://nainikaessentialsdatabas-bii8.onrender.com/products/${productId}/reviews`);
       const data = await res.json();
 
       setReviews(data || []);
@@ -166,7 +166,7 @@ const handleAddToCart = async () => {
 
   try {
     // Reduce stock
-    const res = await fetch(`https://nainikaessentialsdatabas.onrender.com/products/reduce-stock`, {
+    const res = await fetch(`https://nainikaessentialsdatabas-bii8.onrender.com/products/reduce-stock`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -181,7 +181,7 @@ const handleAddToCart = async () => {
     setSelectedVariant(prev => ({ ...prev, stock: prev.stock - qty }));
 
     // Add to backend cart (user or guest)
-    const cartRes = await fetch(`https://nainikaessentialsdatabas.onrender.com/carts/add`, {
+    const cartRes = await fetch(`https://nainikaessentialsdatabas-bii8.onrender.com/carts/add`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ user_id: userId, product: productObj }),
@@ -214,7 +214,7 @@ const handleBuyNow = async () => {
 
   try {
     // Reduce stock
-    const res = await fetch(`https://nainikaessentialsdatabas.onrender.com/products/reduce-stock`, {
+    const res = await fetch(`https://nainikaessentialsdatabas-bii8.onrender.com/products/reduce-stock`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -229,7 +229,7 @@ const handleBuyNow = async () => {
     setSelectedVariant(prev => ({ ...prev, stock: prev.stock - qty }));
 
     // Add to backend cart (user or guest)
-    const cartRes = await fetch(`https://nainikaessentialsdatabas.onrender.com/carts/add`, {
+    const cartRes = await fetch(`https://nainikaessentialsdatabas-bii8.onrender.com/carts/add`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ user_id: userId, product: productObj }),

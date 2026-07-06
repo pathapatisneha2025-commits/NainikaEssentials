@@ -12,7 +12,7 @@ const ProfilePage = () => {
     const Id = storedUser?.user_id;
 
     if (Id) {
-      fetch(`https://nainikaessentialsdatabas.onrender.com/users/${Id}`)
+      fetch(`https://nainikaessentialsdatabas-bii8.onrender.com/users/${Id}`)
         .then((res) => res.json())
         .then((data) => {
           setUserData(data.user);

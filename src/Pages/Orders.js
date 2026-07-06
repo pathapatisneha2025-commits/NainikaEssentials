@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-const API_BASE = "https://nainikaessentialsdatabas.onrender.com";
+const API_BASE = "https://nainikaessentialsdatabas-bii8.onrender.com";
 
 export default function MyOrders() {
   const navigate = useNavigate();
@@ -78,7 +78,7 @@ export default function MyOrders() {
         alert("Return requested for entire order!");
         setOrders((prev) =>
           prev.map((o) =>
-            o.order_id === orderId
+            o.id === orderId
               ? {
                   ...o,
                   items: o.items.map((i) => ({
@@ -167,7 +167,7 @@ export default function MyOrders() {
                 return (
                   <tr key={order.order_id}>
                     <td className="order-id-cell">
-                      #{order.order_id.toString().slice(-6)}
+                      #{order.id.toString().slice(-6)}
                       <span>{order.payment_method?.toUpperCase()}</span>
                     </td>
                     <td>{new Date(order.created_at).toLocaleDateString()}</td>
@@ -184,7 +184,7 @@ export default function MyOrders() {
                     <td style={{ fontWeight: "600" }}>₹{order.total_amount}</td>
                     <td>
                       {returnStatus === "Not Requested" ? (
-                        <button className="return-btn" onClick={() => handleReturnRequest(order.order_id)}>
+                        <button className="return-btn" onClick={() => handleReturnRequest(order.id)}>
                           Return Order
                         </button>
                       ) : (

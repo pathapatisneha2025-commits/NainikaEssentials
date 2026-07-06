@@ -11,7 +11,7 @@ export default function ShopByCategory() {
     const fetchProducts = async () => {
       try {
         const res = await fetch(
-          "https://nainikaessentialsdatabas.onrender.com/products/all"
+          "https://nainikaessentialsdatabas-bii8.onrender.com/products/all"
         );
         const data = await res.json();
         setProducts(data);

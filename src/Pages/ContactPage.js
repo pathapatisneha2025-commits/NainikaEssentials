@@ -39,7 +39,7 @@ Facebook: () => (
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch("https://nainikaessentialsdatabas.onrender.com/contact/add", {
+      const res = await fetch("https://nainikaessentialsdatabas-bii8.onrender.com/contact/add", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ full_name: fullName, email, message }),
@@ -58,7 +58,7 @@ Facebook: () => (
   const fetchMessages = async () => {
     try {
       setLoadingMessages(true);
-      const res = await fetch("https://nainikaessentialsdatabas.onrender.com/contact/messages");
+      const res = await fetch("https://nainikaessentialsdatabas-bii8.onrender.com/contact/messages");
       if (!res.ok) throw new Error("Failed to fetch messages");
       const data = await res.json();
       setMessages(data);
@@ -76,7 +76,7 @@ Facebook: () => (
   // Update status using fetch
   const updateStatus = async (id, status) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/messages/${id}/status`, {
+      const res = await fetch(`https://nainikaessentialsdatabas-bii8.onrender.com/messages/${id}/status`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status }),

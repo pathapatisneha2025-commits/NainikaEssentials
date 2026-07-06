@@ -5,12 +5,12 @@ const BestSellers = () => {
   const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filterType, setFilterType] = useState("bestseller"); // Default filter
+  const [filterType, setFilterType] = useState("Best Seller"); // Default filter
 
   // Fetch products from API
   const fetchProducts = async () => {
     try {
-      const res = await fetch("https://nainikaessentialsdatabas.onrender.com/bestseller/all");
+      const res = await fetch("https://nainikaessentialsdatabas-bii8.onrender.com/bestseller/all");
       if (!res.ok) throw new Error("Failed to fetch products");
       const data = await res.json();
       setProducts(data);

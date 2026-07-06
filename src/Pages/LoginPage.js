@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate ,Link} from 'react-router-dom';
 
-const BASE_URL = 'https://nainikaessentialsdatabas.onrender.com';
+const BASE_URL = 'https://nainikaessentialsdatabas-bii8.onrender.com';
 
 const LoginPage = () => {
   const navigate = useNavigate();
